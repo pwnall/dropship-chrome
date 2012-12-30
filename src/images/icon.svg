@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Layer_1" x="0px" y="0px" width="100px" height="100px" viewBox="0 0 100 100" enable-background="new 0 0 100 100" xml:space="preserve">
-<polygon points="86,47 86,72 16,72 16,47 1,47 1,87 101,87 101,47 "/>
-<polygon points="61,34 61,14 41,14 41,34 23,34 51,62.932 79,34 "/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" version="1.1" y="0px" x="0px">
+  <path d="m100,100,0-40-20,0,0,20-60,0,0-20-20,0,0,40z" fill="#266CB6"/>
+  <path d="M60,40,60,10,40,10,40,40,20,40,50,70,80,40z" fill="#3DC11F"/>
 </svg>

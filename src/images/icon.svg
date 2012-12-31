@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" version="1.1" y="0px" x="0px">
-  <path d="m100,100,0-40-20,0,0,20-60,0,0-20-20,0,0,40z" fill="#266CB6"/>
-  <path d="M60,40,60,10,40,10,40,40,20,40,50,70,80,40z" fill="#3DC11F"/>
+<svg xmlns="http://www.w3.org/2000/svg" height="100%" width="100%" version="1.1" y="0px" x="0px" viewBox="0 0 100 100">
+	<path fill="#266cb6" d="m100,100,0-50-20,0,0,30-60,0,0-30-20,0,0,50z"/>
+	<path fill="#3dc11f" d="M60,30,60,0,40,0,40,30,20,30,50,60,80,30z"/>
 </svg>

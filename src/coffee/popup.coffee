@@ -7,9 +7,11 @@ class DownloadsView
     @reloadUserInfo()
 
   reloadUserInfo: ->
-    chrome.extension.sendMessage command: 'user_info', (response) =>
-      @$userInfo.removeClass 'hidden'
-      @$userName.text response.name
-      @$userEmail.text response.email
+    chrome.runtime.getBackgroundPage (eventPage) =>
+      eventPage.controller.dropboxChrome.userInfo (userInfo) =>
+        @$userInfo.removeClass 'hidden'
+        @$userName.text userInfo.name
+        @$userEmail.text userInfo.email
 
-new DownloadView document.body
+$ ->
+  window.view = new DownloadsView document.body

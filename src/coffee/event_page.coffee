@@ -1,6 +1,6 @@
 _client = null
 
-class DropboxChrome
+class Dropbox.Chrome
   # @param {Object} options to be passed to the Dropbox API client; the object
   #     should have the properties 'key' and 'sandbox'
   constructor: (@clientOptions) ->
@@ -41,16 +41,19 @@ class DropboxChrome
       callback @_userInfo
       return null
 
-    chrome.storage.get 'dropbox_js_userinfo', (items) =>
+    chrome.storage.local.get 'dropbox_js_userinfo', (items) =>
       if items && items.dropbox_js_userinfo
-        @_userInfo = Dropbox.UserInfo.parse items.dropbox_js_userinfo
-        return callback @_userInfo
+        try
+          @_userInfo = Dropbox.UserInfo.parse items.dropbox_js_userinfo
+          return callback @_userInfo
+        catch Error
+          # There was a parsing error. Let the control flow fall.
 
       @client (client) =>
         client.getUserInfo (error, userInfo) =>
           return if error
           @_userInfo = userInfo
-          chrome.storage.set dropbox_js_userinfo: userInfo, =>
+          chrome.storage.local.set dropbox_js_userinfo: userInfo.json(), =>
             callback @_userInfo
 
 
@@ -58,6 +61,7 @@ class DropboxChrome
 class EventPageController
   constructor: (@dropboxChrome) ->
     chrome.browserAction.onClicked.addListener => @onBrowserAction()
+    chrome.extension.onMessage.addListener => @onMessage
     chrome.runtime.onInstalled.addListener => @onStart()
     chrome.runtime.onStartup.addListener => @onStart()
     @dropboxChrome.onClient.addListener (client) =>
@@ -117,9 +121,8 @@ class EventPageController
         'Download to Dropbox', errorText
 
 
-dropboxChrome = new DropboxChrome(
+dropboxChrome = new Dropbox.Chrome(
   key: 'fOAYMWHVRVA=|pHQC3wPkdQ718FleqazY8eZQmxyhJ5n4G5++PXDYBg==',
   sandbox: true)
 
-# Exporting the controller for easy debugging.
 window.controller = new EventPageController dropboxChrome

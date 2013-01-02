@@ -36,9 +36,10 @@ build = (callback) ->
   commands.push 'cp -r src/html build/'
   # TODO(pwnall): consider optipng
   commands.push 'cp -r src/images build/'
-  for inFile in glob.sync 'src/css/**/*.css'
+  for inFile in glob.sync 'src/less/**/*.less'
     continue if path.basename(inFile).match /^_/
-    outFile = inFile.replace /^src\//, 'build/'
+    outFile = inFile.replace(/^src\/less\//, 'build/css/').
+                     replace(/\.less$/, '.css')
     commands.push "node_modules/less/bin/lessc --strict-imports #{inFile} " +
                   "> #{outFile}"
   for inFile in glob.sync 'vendor/*.js'

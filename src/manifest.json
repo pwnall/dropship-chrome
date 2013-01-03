@@ -16,14 +16,13 @@
     "default_title": "Starting..."
   },
   "permissions": [
+    "chrome://favicon/",
     "contextMenus",
     "notifications",
     "storage",
     "unlimitedStorage"
   ],
   "optional_permissions": [
-    "http://*/",
-    "https://*/",
     "<all_urls>"
   ],
   "background": {
@@ -35,5 +34,9 @@
     "persistent": false
   },
   "web_accessible_resources": [
+    "images/icon16.png",
+    "images/icon48.png",
+    "images/icon64.png",
+    "images/icon128.png"
   ]
 }

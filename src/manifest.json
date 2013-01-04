@@ -16,6 +16,8 @@
     "default_title": "Starting..."
   },
   "permissions": [
+    "<all_urls>",
+
     "chrome://favicon/",
     "contextMenus",
     "notifications",
@@ -23,12 +25,12 @@
     "unlimitedStorage"
   ],
   "optional_permissions": [
-    "<all_urls>"
   ],
   "background": {
     "scripts": [
       "vendor/dropbox.js",
       "js/auth_driver.js",
+      "js/dropbox_chrome.js",
       "js/event_page.js"
     ],
     "persistent": false

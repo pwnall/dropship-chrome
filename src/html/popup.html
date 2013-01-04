@@ -8,6 +8,18 @@
     <script src="/js/popup.js" type="text/javascript"></script>
   </head>
   <body>
+    <ol id="file-list">
+    </ol>
+    <script type="text/template" id="file-item-template">
+      <li class="file-item">
+        <span class="file-name"></span>
+        <progress class="file-progress"></progress>
+        <span class="file-progress-label"></span>
+        <span class="file-actions">
+          <button class="file-remove hidden"></button>
+        </span>
+      </li>
+    </script>
     <p id="dropbox-info">
       Signed into Dropbox as
       <span id="dropbox-name"></span>

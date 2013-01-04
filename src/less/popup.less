@@ -1,8 +1,35 @@
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
 .hidden {
   display: none;
 }
 
+#file-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: block;
+  border-bottom: 1px solid hsl(0deg, 0, 85%);
+
+  .file-item {
+    display: block;
+    margin: 0;
+    padding: 0.33em 0.8em;
+
+    border-bottom: 1px solid hsl(0deg, 0, 92%);
+    &:last-child {
+      border-bottom: none;
+    }
+
+    white-space: nowrap;
+  }
+}
+
+
 #dropbox-info {
-  font-size: 10px;
+  font-size: 11px;
   white-space: nowrap;
 }

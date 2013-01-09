@@ -29,8 +29,11 @@
   "background": {
     "scripts": [
       "vendor/dropbox.js",
-      "js/auth_driver.js",
       "js/dropbox_chrome.js",
+      "js/download_controller.js",
+      "js/dropship_file.js",
+      "js/dropship_list.js",
+      "js/upload_controller.js",
       "js/event_page.js"
     ],
     "persistent": false

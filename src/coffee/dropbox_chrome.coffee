@@ -14,27 +14,31 @@ class Dropbox.Chrome
 
   # Produces a properly set up Dropbox API client.
   #
-  # @param {function(Dropbox.Client)} callback called with the Dropbox.Client
-  #   instance
-  # @return {null} null
+  # @param {function(Dropbox.Client)} callback called with a properly set up
+  #   Dropbox.Client instance
+  # @return {Dropbox.Chrome} this
   client: (callback) ->
     if @_client
       callback @_client
-      return null
+      return @
 
-    authDriver = new Dropbox.Drivers.ChromeExtension(
+    authDriver = new Dropbox.Drivers.Chrome(
         receiverPath: 'html/chrome_oauth_receiver.html')
     authDriver.loadCredentials (credentials) =>
-      unless credentials && credentials.token && credentials.tokenSecret
+      unless credentials and credentials.token and credentials.tokenSecret
         # Missing or corrupted credentials.
         credentials = @clientOptions
       @_client = new Dropbox.Client credentials
       @_client.authDriver authDriver
       @onClient.dispatch @_client
       callback @_client
-    null
+    @
 
   # Returns a (potentially cached) version of the Dropbox user's information.
+  #
+  # @param {function(Dropbox.UserInfo)} callback called when the
+  #   Dropbox.UserInfo becomes available
+  # @return {Dropbox.Chrome} this
   userInfo: (callback) ->
     if @_userInfo
       callback @_userInfo
@@ -54,5 +58,19 @@ class Dropbox.Chrome
           @_userInfo = userInfo
           chrome.storage.local.set dropbox_js_userinfo: userInfo.json(), =>
             callback @_userInfo
+    null
 
+  # Signs the user out of Dropbox and clears their cached information.
+  #
+  # @param {function()} callback called when the user's token is invalidated
+  #   and the cached information is removed
+  # @return {Dropbox.Chrome} this
+  signOut: (callback) ->
+    @client (client) =>
+      unless client.isAuthenticated()
+        return callback()
 
+      client.signOut =>
+        @_userInfo = null
+        chrome.storage.local.remove 'dropbox_js_userinfo', =>
+          callback()

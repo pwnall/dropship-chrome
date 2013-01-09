@@ -2,8 +2,10 @@ class DownloadsView
   constructor: (@root) ->
     @$root = $ @root
     @$userInfo = $ '#dropbox-info', @$root
-    @$userName = $ '#dropbox-name', @$root
-    @$userEmail = $ '#dropbox-email', @$root
+    @$userName = $ '#dropbox-name', @$userInfo
+    @$userEmail = $ '#dropbox-email', @$userInfo
+    @$signoutButton = $ '#dropbox-signout', @$userInfo
+    @$signoutButton.click (event) => @onSignoutClick event
     @$fileList = $ '#file-list', @$root
     @fileTemplate = $('#file-item-template', @$root).text()
 
@@ -54,6 +56,14 @@ class DownloadsView
       $('.file-progress-label').text file.downloadedBytes
     $fileDom
 
+  # Called when the user clicks on the 'Sign out' button.
+  onSignoutClick: (event) ->
+    event.preventDefault()
+    @$signoutButton.attr 'disabled', true
+    chrome.runtime.getBackgroundPage (eventPage) =>
+      eventPage.controller.dropboxChrome.signOut ->
+        window.close()
+
   # Called when a Chrome extension internal message is received.
   onMessage: (message) ->
     switch message.notice
@@ -62,6 +72,6 @@ class DownloadsView
       when 'update_files'
         @updateFileList()
 
-
 $ ->
+  # The view is in the global namespace to facilitate debugging.
   window.view = new DownloadsView document.body

@@ -16,14 +16,21 @@
         <progress class="file-progress"></progress>
         <span class="file-progress-label"></span>
         <span class="file-actions">
-          <button class="file-remove hidden"></button>
+          <button class="file-remove hidden">X</button>
         </span>
       </li>
     </script>
-    <p id="dropbox-info">
-      Signed into Dropbox as
-      <span id="dropbox-name"></span>
-      &lt;<span id="dropbox-email"></span>&gt;
-    </p>
+    <section id="dropbox-info">
+      <form id="dropbox-signout-form" action="">
+        <button type="submit" id="dropbox-signout">
+          Sign out of Dropbox
+        </button>
+      </form>
+      <p id="dropbox-identity">
+        Signed into Dropbox as
+        <span id="dropbox-name"></span>
+        &lt;<span id="dropbox-email"></span>&gt;
+      </p>
+    </section>
   </body>
 </html>

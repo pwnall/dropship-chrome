@@ -47,7 +47,7 @@ class DownloadsView
   # Updates one file in the view.
   updateFile: (fileUid) ->
     unless @fileIndexes[fileUid]
-      return updateFileList()
+      return @updateFileList()
     fileIndex = @fileIndexes[fileUid]
 
     chrome.runtime.getBackgroundPage (eventPage) =>

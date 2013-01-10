@@ -238,7 +238,6 @@ class DropshipList
       return @
     @_dbLoadCallbacks = [callback]
 
-    indexedDB = window.indexedDB or window.webkitIndexedDB
     request = indexedDB.open @dbName, @dbVersion
     request.onsuccess = (event) =>
       @openedDb event.target.result
@@ -260,6 +259,8 @@ class DropshipList
   # @param {IDBDatabase} db
   # @return {DropshipList} this
   openedDb: (db) ->
+    return unless @_dbLoadCallbacks
+
     @_db = db
     callbacks = @_dbLoadCallbacks
     @_dbLoadCallbacks = null

@@ -26,7 +26,7 @@ class UploadController
 
     @dropboxChrome.client (client) =>
       xhrListener = (dbXhr) =>
-        dbXhr.xhr.addEventListener 'progress', (event) =>
+        dbXhr.xhr.upload.addEventListener 'progress', (event) =>
           @onXhrProgress file, event
       client.onXhr.addListener xhrListener
       @xhrs[file.uid] = client.writeFile file.basename(), file.blob,

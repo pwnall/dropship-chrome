@@ -62,10 +62,7 @@ class EventPageController
     url = null
     referrer = null
     if clickData.srcUrl or clickData.linkUrl
-      if clickData.mediaType
-        url = clickData.srcUrl or clickData.linkUrl
-      else
-        url = clickData.linkUrl or clickData.srcUrl
+      url = clickData.linkUrl or clickData.srcUrl
       referrer = clickData.frameUrl or clickData.pageUrl
     else if clickData.frameUrl
       url = clickData.frameUrl
@@ -118,7 +115,7 @@ class EventPageController
 
       for own uid, file of files
         switch file.state()
-          when DropshipFile.NEW, DropshipFile.DOWNLOADING, DropshipFile.DOWNLOADED
+          when DropshipFile.NEW, DropshipFile.DOWNLOADING, DropshipFile.DOWNLOADED, DropshipFile.SAVING
             # Files that got to DOWNLOADED but didn't get to UPLOADING don't
             # have their blobs saved, so we have to start them over.
             barrierCount += 1
@@ -130,7 +127,6 @@ class EventPageController
 
   # Called when the user asks to have a file download / upload canceled.
   cancelFile: (file, callback) ->
-    console.log ['cancelFile', file, file.state()]
     switch file.state()
       when DropshipFile.DOWNLOADING
         @downloadController.cancelFile file, =>
@@ -139,6 +135,13 @@ class EventPageController
             chrome.extension.sendMessage(
                 notice: 'update_file', fileUid: file.uid)
             callback()
+      when DropshipFile.SAVING
+        file.setCanceled()
+        @fileList.updateFileState file, (error) =>
+          chrome.extension.sendMessage(
+              notice: 'update_file', fileUid: file.uid)
+          callback()
+        callback()
       when DropshipFile.UPLOADING
         @uploadController.cancelFile file, =>
           file.setCanceled()
@@ -146,8 +149,8 @@ class EventPageController
             chrome.extension.sendMessage(
                 notice: 'update_file', fileUid: file.uid)
             callback()
-      else
-        # The file got in a different state.
+      else  # The file got in a different state.
+        callback()
     @
 
   # Called when the user asks to have a file's info removed from the list.
@@ -157,22 +160,22 @@ class EventPageController
         @fileList.removeFileState file, ->
           chrome.extension.sendMessage notice: 'update_files'
           callback()
-      else
-        # The file got in a different state.
+      else  # The file got in a different state.
+        callback()
     @
 
   # Called when the user asks to have a download / upload re-attempted.
   retryFile: (file, callback) ->
     switch file.state()
-      when DropshipFile.ERROR, DropshipFile.CANCELED
+      when DropshipFile.UPLOADED, DropshipFile.ERROR, DropshipFile.CANCELED
         @fileList.getFileContents file, (blob) =>
           if blob
             file.blob = blob
             @uploadController.addFile file, callback
           else
             @downloadController.addFile file, callback
-      else
-        # The file got in a different state.
+      else  # The file got in a different state.
+        callback()
     @
 
   # Called when the Dropbox API server returns an error.
@@ -191,6 +194,10 @@ class EventPageController
             if error
               chrome.extension.sendMessage(
                   notice: 'update_file', fileUid: file.uid)
+              return
+
+            if file.state() is DropshipFile.CANCELED
+              # User cancelled while committing to IndexedDB.
               return
 
             @uploadController.addFile file, =>

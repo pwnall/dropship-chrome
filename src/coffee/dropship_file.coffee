@@ -110,7 +110,7 @@ class DropshipFile
   # @return {Number} the number of bytes that have been alredy uploaded
   uploadedBytes: ->
     if @_state is DropshipFile.UPLOADING
-      @_downloadedBytes or 0
+      @_uploadedBytes or 0
     else if @_state > DropshipFile.UPLOADING
       @size
     else
@@ -125,7 +125,7 @@ class DropshipFile
   setUploadProgress: (uploadedBytes, totalBytes) ->
     @_state = DropshipFile.UPLOADING
     if totalBytes
-      uploadOverhead = totalBytes - size
+      uploadOverhead = totalBytes - @size
       @_uploadedBytes = uploadedBytes - uploadOverhead
       @_uploadedBytes = 0 if @_uploadedBytes < 0
     else
@@ -148,7 +148,7 @@ class DropshipFile
   # @return {DropshipFile} this
   setContents: (blob) ->
     @_state = DropshipFile.DOWNLOADED
-    @downloadedBytes = blob.size
+    @_downloadedBytes = null
     @size = blob.size
     @blob = blob
     @_json = null
@@ -182,6 +182,7 @@ class DropshipFile
     @dropboxPath = stat.path
     @_basename = null  # Invalidated so it's recomputed using dropboxPath.
     @_state = DropshipFile.UPLOADED
+    @_uploadedBytes = null
     @blob = null
     @_json = null
     @
@@ -204,7 +205,7 @@ class DropshipFile
 
   # @return {Boolean} true if this file download / upload can be retried
   canBeRetried: ->
-    @_state >= DropshipFile.ERROR
+    @_state >= DropshipFile.UPLOADED
 
   # @return {String} a randomly generated unique ID
   @randomUid: ->

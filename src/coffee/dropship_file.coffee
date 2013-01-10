@@ -17,8 +17,9 @@ class DropshipFile
   constructor: (options) ->
     @url = options.url
     @referrer = options.referrer or null
+    @dropboxPath = options.dropboxPath or null
     @startedAt = options.startedAt or Date.now()
-    @uid = options.id or DropshipFile.randomUid()
+    @uid = options.uid or DropshipFile.randomUid()
     @size = options.size
     @size = null unless @size or @size is 0
     @errorText = options.errorText or null
@@ -27,8 +28,8 @@ class DropshipFile
     @_json = null
     @_basename = null
 
-    @downloadedBytes = 0
-    @uploadedBytes = 0
+    @_downloadedBytes = 0
+    @_uploadedBytes = 0
     @blob = null
 
   # @property {String} identifying string, unique to an extension instance
@@ -39,6 +40,10 @@ class DropshipFile
 
   # @property {String} value of the Referer header when downloading the file
   referrer: null
+
+  # @property {String} the path of this file, relative to the application's
+  #   Dropbox folder
+  dropboxPath: null
 
   # @property {Number} the time when the user asked to have the file
   #   downloaded; this should only be used for relative comparison among
@@ -60,17 +65,25 @@ class DropshipFile
   #   file's contents
   json: ->
     @_json ||=
-        url: @url, referrer: @referrer, startedAt: @startedAt, uid: @uid,
-        size: @size, state: @_state, errorText: @errorText
+        url: @url, referrer: @referrer, dropboxPath: @dropboxPath,
+        startedAt: @startedAt, uid: @uid, size: @size, state: @_state,
+        errorText: @errorText
 
   # @return {String} the file's name without the path, query string and
   #   URL fragment
   basename: ->
     return @_basename if @_basename
 
-    basename = @url.substring @url.lastIndexOf('/') + 1
-    basename = basename.split('?', 2)[0].split('#', 2)[0]
-    @_basename = basename
+    if @dropboxPath
+      basename = @dropboxPath
+      basename = basename.substring basename.lastIndexOf('/') + 1
+      @_basename = basename
+    else
+      basename = @url.split('#', 2)[0].split('?', 2)[0]
+      while basename.substring(basename.length - 1) == '/'
+        basename = basename.substring 0, basename.length - 1
+      basename = basename.substring basename.lastIndexOf('/') + 1
+      @_basename = basename
 
   # Called while the file is downloading.
   #
@@ -80,9 +93,28 @@ class DropshipFile
   # @return {DropshipFile} this
   setDownloadProgress: (downloadedBytes, totalBytes) ->
     @_state = DropshipFile.DOWNLOADING
-    @downloadedBytes = downloadedBytes
+    @_downloadedBytes = downloadedBytes
     @size = totalBytes if totalBytes
+    @_json = null
     @
+
+  # @return {Number} the number of bytes that have been already downloaded
+  downloadedBytes: ->
+    if @_state is DropshipFile.DOWNLOADING
+      @_downloadedBytes or 0
+    else if @_state > DropshipFile.DOWNLOADING
+      @size
+    else
+      0
+
+  # @return {Number} the number of bytes that have been alredy uploaded
+  uploadedBytes: ->
+    if @_state is DropshipFile.UPLOADING
+      @_downloadedBytes or 0
+    else if @_state > DropshipFile.UPLOADING
+      @size
+    else
+      0
 
   # Called while the file is uploading.
   #
@@ -94,10 +126,11 @@ class DropshipFile
     @_state = DropshipFile.UPLOADING
     if totalBytes
       uploadOverhead = totalBytes - size
-      @uploadedBytes = uploadedBytes - uploadOverhead
-      @uploadedBytes = 0 if @uploadedBytes < 0
+      @_uploadedBytes = uploadedBytes - uploadOverhead
+      @_uploadedBytes = 0 if @_uploadedBytes < 0
     else
-      @uploadedBytes = uploadedBytes
+      @_uploadedBytes = uploadedBytes
+    @_json = null
     @
 
   # Called while the file is being saved to the database.
@@ -118,6 +151,7 @@ class DropshipFile
     @downloadedBytes = blob.size
     @size = blob.size
     @blob = blob
+    @_json = null
     @
 
   # Called when a file's download ends due to an error.
@@ -127,6 +161,7 @@ class DropshipFile
   setDownloadError: (error) ->
     @_state = DropshipFile.ERROR
     @errorText = "Download error: #{error}"
+    @_json = null
     @
 
   # Called when a file's upload to Dropbox ends due to an error.
@@ -136,6 +171,7 @@ class DropshipFile
   setUploadError: (error) ->
     @_state = DropshipFile.ERROR
     @errorText = "Dropbox error: #{error}"
+    @_json = null
     @
 
   # Called when a file's upload to Dropbox completes.
@@ -143,13 +179,36 @@ class DropshipFile
   # @param {Dropbox.Stat} stat the file's metadata in Dropbox
   # @return {DropshipFile} this
   setDropboxStat: (stat) ->
+    @dropboxPath = stat.path
+    @_basename = null  # Invalidated so it's recomputed using dropboxPath.
     @_state = DropshipFile.UPLOADED
     @blob = null
+    @_json = null
     @
+
+  # Called when a file's download is canceled.
+  setCanceled: ->
+    @_state = DropshipFile.CANCELED
+    @errorText = "Download canceled."
+    @blob = null
+    @_json = null
+    @
+
+  # @return {Boolean} true if this file download / upload can be canceled
+  canBeCanceled: ->
+    @_state < DropshipFile.UPLOADED
+
+  # @return {Boolean} true if this file download / upload can be hidden
+  canBeHidden: ->
+    @_state >= DropshipFile.UPLOADED
+
+  # @return {Boolean} true if this file download / upload can be retried
+  canBeRetried: ->
+    @_state >= DropshipFile.ERROR
 
   # @return {String} a randomly generated unique ID
   @randomUid: ->
-    Date.now().toString(36) + Math.random().toString(36).substring(1)
+    Date.now().toString(36) + '_' + Math.random().toString(36).substring(2)
 
   # state() value before the file has started downloading
   @NEW: 1

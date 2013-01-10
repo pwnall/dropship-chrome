@@ -4,7 +4,7 @@ html, body {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 #file-list {
@@ -23,8 +23,58 @@ html, body {
     &:last-child {
       border-bottom: none;
     }
+  }
 
+  .file-item-metadata {
+    display: block;
+    width: 100%;
     white-space: nowrap;
+    font-size: 16px;
+
+    .file-name {
+      display: inline-block;
+      text-align: left;
+
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .file-size {
+      display: inline-block;
+      margin-left: 1em;
+      text-align: right;
+      white-space: nowrap;
+    }
+  }
+  .file-item-source {
+    display: block;
+    width: 100%;
+    font-size: 14px;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    .file-item-link {
+      text-decoration: none;
+      color: hsl(218, 85%, 43%);
+      &:visited, &:active {
+        color: hsl(218, 40%, 43%);
+      }
+    }
+  }
+
+  .file-item-progress {
+    display: block;
+    .file-down-progress, .file-up-progress {
+      display: block;
+      margin: 0.33em 0;
+      width: 100%;
+    }
+  }
+
+  .file-actions {
+    display: block;
   }
 }
 
@@ -38,4 +88,5 @@ html, body {
 #dropbox-identity {
   font-size: 11px;
   white-space: nowrap;
+  text-align: center;
 }

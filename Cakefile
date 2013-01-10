@@ -80,12 +80,15 @@ clean = (callback) ->
 vendor = (callback) ->
   fs.mkdirSync 'vendor' unless fs.existsSync 'vendor'
   downloads = [
-    ['https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/0.7.2/dropbox.min.js',
+    ['https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/0.8.1/dropbox.min.js',
      'vendor/dropbox.min.js'],
 
     # Zepto.js is a small subset of jQuery.
     ['http://zeptojs.com/zepto.js', 'vendor/zepto.js'],
     ['http://zeptojs.com/zepto.min.js', 'vendor/zepto.min.js']
+
+    # Humanize for user-readable sizes.
+    ['https://raw.github.com/taijinlee/humanize/0a97f11503e3844115cfa3dc365cf9884e150e4b/humanize.js', 'vendor/humanize.js']
   ]
 
   async.forEachSeries downloads, download, ->
@@ -100,6 +103,11 @@ vendor = (callback) ->
         commands.push 'cp vendor/dropbox.min.js vendor/dropbox.js'
     if fs.existsSync '../dropbox-js/lib/dropbox.min.js'
       commands.push 'cp ../dropbox-js/lib/dropbox.min.js vendor/'
+
+    # Minify humanize.
+    unless fs.existsSync 'vendor/humanize.min.js'
+      commands.push 'node_modules/uglify-js/bin/uglifyjs --compress ' +
+          '--mangle --output vendor/humanize.min.js vendor/humanize.js'
 
     async.forEachSeries commands, run, ->
       callback() if callback

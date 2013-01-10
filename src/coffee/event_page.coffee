@@ -26,15 +26,13 @@ class EventPageController
     @fileList = new DropshipList
     @fileList.onDbError.addListener (errorText) =>
       @errorNotice errorText
+    @restoreFiles -> null
 
   # Called by Chrome when the user installs the extension.
   onInstall: ->
     chrome.contextMenus.create
         id: 'download', title: 'Upload to Dropbox', enabled: false,
         contexts: ['page', 'frame', 'link', 'image', 'video', 'audio']
-
-    # Create or upgrade the database.
-    @fileList.db -> null
 
   # Called by Chrome when the user installs the extension or starts Chrome.
   onStart: ->
@@ -63,7 +61,7 @@ class EventPageController
   onContextMenu: (clickData) ->
     url = null
     referrer = null
-    if clickData.srCUrl or clickData.linkUrl
+    if clickData.srcUrl or clickData.linkUrl
       if clickData.mediaType
         url = clickData.srcUrl or clickData.linkUrl
       else
@@ -85,7 +83,7 @@ class EventPageController
     file = new DropshipFile url: url, referrer: referrer
     @downloadController.addFile file, =>
       @fileList.addFile file, =>
-        chrome.extension.sendMessage type: 'update_files'
+        chrome.extension.sendMessage notice: 'update_files'
 
   # Called when the Dropbox authentication state changes.
   onDropboxAuthChange: (client) ->
@@ -109,6 +107,74 @@ class EventPageController
         chrome.browserAction.setBadgeText text: '?'
         chrome.browserAction.setBadgeBackgroundColor color: '#DF2020'
 
+  # Resumes the ongoing downloads / uploads.
+  restoreFiles: (callback) ->
+    @fileList.getFiles (files) =>
+
+      barrierCount = 1
+      barrier = ->
+        barrierCount -= 1
+        callback() if barrierCount is 0
+
+      for own uid, file of files
+        switch file.state()
+          when DropshipFile.NEW, DropshipFile.DOWNLOADING, DropshipFile.DOWNLOADED
+            # Files that got to DOWNLOADED but didn't get to UPLOADING don't
+            # have their blobs saved, so we have to start them over.
+            barrierCount += 1
+            @downloadController.addFile file, barrier
+          when DropshipFile.UPLOADING
+            barrierCount += 1
+            @uploadController.addFile file, barrier
+      barrier()
+
+  # Called when the user asks to have a file download / upload canceled.
+  cancelFile: (file, callback) ->
+    console.log ['cancelFile', file, file.state()]
+    switch file.state()
+      when DropshipFile.DOWNLOADING
+        @downloadController.cancelFile file, =>
+          file.setCanceled()
+          @fileList.updateFileState file, (error) =>
+            chrome.extension.sendMessage(
+                notice: 'update_file', fileUid: file.uid)
+            callback()
+      when DropshipFile.UPLOADING
+        @uploadController.cancelFile file, =>
+          file.setCanceled()
+          @fileList.updateFileState file, (error) =>
+            chrome.extension.sendMessage(
+                notice: 'update_file', fileUid: file.uid)
+            callback()
+      else
+        # The file got in a different state.
+    @
+
+  # Called when the user asks to have a file's info removed from the list.
+  removeFile: (file, callback) ->
+    switch file.state()
+      when DropshipFile.UPLOADED, DropshipFile.ERROR, DropshipFile.CANCELED
+        @fileList.removeFileState file, ->
+          chrome.extension.sendMessage notice: 'update_files'
+          callback()
+      else
+        # The file got in a different state.
+    @
+
+  # Called when the user asks to have a download / upload re-attempted.
+  retryFile: (file, callback) ->
+    switch file.state()
+      when DropshipFile.ERROR, DropshipFile.CANCELED
+        @fileList.getFileContents file, (blob) =>
+          if blob
+            file.blob = blob
+            @uploadController.addFile file, callback
+          else
+            @downloadController.addFile file, callback
+      else
+        # The file got in a different state.
+    @
+
   # Called when the Dropbox API server returns an error.
   onDropboxError: (client, error) ->
     @errorNotice "Something went wrong while talking to Dropbox: #{error}"
@@ -117,22 +183,21 @@ class EventPageController
   onFileStateChange: (file) ->
     @fileList.updateFileState file, (error) =>
       return if error
-      chrome.extension.sendMessage type: 'update_file', fileUid: file.uid
+      chrome.extension.sendMessage notice: 'update_file', fileUid: file.uid
 
       switch file.state()
         when DropshipFile.DOWNLOADED
           @fileList.setFileContents file, file.blob, (error) =>
             if error
               chrome.extension.sendMessage(
-                  type: 'update_file', fileUid: file.uid)
+                  notice: 'update_file', fileUid: file.uid)
               return
 
             @uploadController.addFile file, =>
               chrome.extension.sendMessage(
-                  type: 'update_file', fileUid: file.uid)
+                  notice: 'update_file', fileUid: file.uid)
         when DropshipFile.UPLOADED
-          @fileList.removeFileContents file, (error) =>
-            chrome.extension.sendMessage type: 'update_file', fileUid: file.uid
+          @fileList.removeFileContents file, (error) -> null
 
   # Shows a desktop notification informing the user that an error occurred.
   errorNotice: (errorText) ->

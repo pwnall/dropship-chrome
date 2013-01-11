@@ -191,7 +191,6 @@ class EventPageController
         return if barrierCount isnt 0
         dropboxChrome.signOut =>
           @fileList.removeDb =>
-            console.log 'reset'
             chrome.extension.sendMessage notice: 'reset_files'
             callback()
 

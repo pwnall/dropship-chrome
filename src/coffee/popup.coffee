@@ -36,7 +36,8 @@ class DownloadsView
     chrome.runtime.getBackgroundPage (eventPage) =>
       eventPage.controller.fileList.getFiles (fileMap) =>
         files = (file for own uid, file of fileMap)
-        files.sort (a, b) ->
+        # (b, a) is an easy hack to switch from ascending to descending sort
+        files.sort (b, a) ->
           if a.startedAt != b.startedAt
             a.startedAt - b.startedAt
           else

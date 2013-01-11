@@ -7,9 +7,9 @@ class UploadController
     @xhrs = {}
     @onStateChange = new Dropbox.EventSource
 
-  # @property {Dropbox.EventSource<DownloadFile>} non-cancelable event fired
-  #   when a file upload completes or stops due to an error; this event does
-  #   not fire when an upload is canceled
+  # @property {Dropbox.EventSource<DropshipFile>} non-cancelable event fired
+  #   when a file upload makes progress, completes, or stops due to an error;
+  #   this event does not fire when an upload is canceled
   onStateChange: null
 
   # Adds a file to the list of files to be uploaded.
@@ -30,7 +30,7 @@ class UploadController
         xhr.upload.addEventListener 'progress', (event) =>
           @onXhrUploadProgress file, xhr, event
       client.onXhr.addListener xhrListener
-      @xhrs[file.uid] = client.writeFile file.basename(), file.blob,
+      @xhrs[file.uid] = client.writeFile file.uploadBasename(), file.blob,
           noOverwrite: true, (error, stat) => @onDropboxWrite file, error, stat
       client.onXhr.removeListener xhrListener
       callback()

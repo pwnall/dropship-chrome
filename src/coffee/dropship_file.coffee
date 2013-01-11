@@ -29,6 +29,7 @@ class DropshipFile
     @_basename = null
 
     @_downloadedBytes = 0
+    @_savedBytes = 0
     @_uploadedBytes = 0
     @blob = null
 
@@ -79,11 +80,15 @@ class DropshipFile
       basename = basename.substring basename.lastIndexOf('/') + 1
       @_basename = basename
     else
-      basename = @url.split('#', 2)[0].split('?', 2)[0]
-      while basename.substring(basename.length - 1) == '/'
-        basename = basename.substring 0, basename.length - 1
-      basename = basename.substring basename.lastIndexOf('/') + 1
-      @_basename = basename
+      @_basename = @uploadBasename()
+
+  # @return {String} the name used when uploading this file to Dropbox
+  #   URL fragment
+  uploadBasename: ->
+    basename = @url.split('#', 2)[0].split('?', 2)[0]
+    while basename.substring(basename.length - 1) == '/'
+      basename = basename.substring 0, basename.length - 1
+    basename.substring basename.lastIndexOf('/') + 1
 
   # Called while the file is downloading.
   #
@@ -94,6 +99,8 @@ class DropshipFile
   setDownloadProgress: (downloadedBytes, totalBytes) ->
     @_state = DropshipFile.DOWNLOADING
     @_downloadedBytes = downloadedBytes
+    @_savedBytes = 0
+    @_uploadedBytes = 0
     @size = totalBytes if totalBytes
     @_json = null
     @
@@ -103,6 +110,16 @@ class DropshipFile
     if @_state is DropshipFile.DOWNLOADING
       @_downloadedBytes or 0
     else if @_state > DropshipFile.DOWNLOADING
+      @size
+    else
+      0
+
+  # @return {Number} the number of bytes that have been alredy written to
+  #   IndexedDB
+  savedBytes: ->
+    if @_state is DropshipFile.SAVING
+      @_savedBytes or 0
+    else if @_state > DropshipFile.SAVING
       @size
     else
       0
@@ -133,13 +150,21 @@ class DropshipFile
     @_json = null
     @
 
-  # Called while the file is being saved to the database.
+  # Called while the file is being saved to IndexedDB.
   #
   # @param {Number} savedBytes the number of bytes that have been already
-  #   written to the database
+  #   written to IndexedDB
   # @return {DropshipFile} this
-  setSaveProgress: (writtenBytes) ->
+  setSaveProgress: (savedBytes) ->
     @_state = DropshipFile.SAVING
+    @_savedBytes = savedBytes
+    @
+
+  # Called when the file is fully saved to IndexedDB.
+  #
+  # @return {DropshipFile} this
+  setSaveSuccess: ->
+    @_state = DropshipFile.SAVED
     @
 
   # Called when the Blob representing the file's content is available.
@@ -161,6 +186,16 @@ class DropshipFile
   setDownloadError: (error) ->
     @_state = DropshipFile.ERROR
     @errorText = "Download error: #{error}"
+    @_json = null
+    @
+
+  # Called when a file's save to IndexedDB ends due to an error.
+  #
+  # @param {Error} error the IndexedDB error
+  # @return {DropshipFile} this
+  setSaveError: (error) ->
+    @_state = DropshipFile.ERROR
+    @errorText = "Disk error: #{error}"
     @_json = null
     @
 
@@ -217,17 +252,21 @@ class DropshipFile
   # state() value when the file is being downloaded from its origin
   @DOWNLOADING: 2
 
-  # state() value when the file was downloaded but hasn't started being
-  #   uploaded to Dropbox
+  # state() value when the file was downloaded, but hasn't started being
+  #   written to IndexedDB
   @DOWNLOADED: 3
 
   # state() value when the file is being written to IndexedDB
   @SAVING: 4
 
+  # state() value when the file was written to IndexedDB, but hasn't started
+  #   being uploaded to Dropbox
+  @SAVED: 5
+
   # state() value when the file is being uploaded to Dropbox
   @UPLOADING: 5
 
-  # state() value when the file was uploaded to Dropbox
+  # state() value after the file was uploaded to Dropbox
   @UPLOADED: 6
 
   # state() value when the file transfer failed due to an error

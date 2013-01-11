@@ -26,6 +26,8 @@ class EventPageController
     @fileList = new DropshipList
     @fileList.onDbError.addListener (errorText) =>
       @errorNotice errorText
+    @fileList.onStateChange.addListener (file) =>
+      @onFileStateChange file
     @restoreFiles -> null
 
   # Called by Chrome when the user installs the extension.
@@ -107,7 +109,6 @@ class EventPageController
   # Resumes the ongoing downloads / uploads.
   restoreFiles: (callback) ->
     @fileList.getFiles (files) =>
-
       barrierCount = 1
       barrier = ->
         barrierCount -= 1
@@ -115,14 +116,16 @@ class EventPageController
 
       for own uid, file of files
         switch file.state()
-          when DropshipFile.NEW, DropshipFile.DOWNLOADING, DropshipFile.DOWNLOADED, DropshipFile.SAVING
-            # Files that got to DOWNLOADED but didn't get to UPLOADING don't
-            # have their blobs saved, so we have to start them over.
+          when DropshipFile.UPLOADED, DropshipFile.ERROR, DropshipFile.CANCELED
+            # Nothing to do.
+          else
             barrierCount += 1
-            @downloadController.addFile file, barrier
-          when DropshipFile.UPLOADING
-            barrierCount += 1
-            @uploadController.addFile file, barrier
+            @fileList.getFileContents file, (error, blob) =>
+              if blob
+                file.blob = blob
+                @uploadController.addFile file, barrier
+              else
+                @downloadController.addFile file, barrier
       barrier()
 
   # Called when the user asks to have a file download / upload canceled.
@@ -137,11 +140,11 @@ class EventPageController
             callback()
       when DropshipFile.SAVING
         file.setCanceled()
-        @fileList.updateFileState file, (error) =>
-          chrome.extension.sendMessage(
-              notice: 'update_file', fileUid: file.uid)
-          callback()
-        callback()
+        @fileList.cancelFileContents file, =>
+          @fileList.updateFileState file, (error) =>
+            chrome.extension.sendMessage(
+                notice: 'update_file', fileUid: file.uid)
+            callback()
       when DropshipFile.UPLOADING
         @uploadController.cancelFile file, =>
           file.setCanceled()
@@ -168,7 +171,7 @@ class EventPageController
   retryFile: (file, callback) ->
     switch file.state()
       when DropshipFile.UPLOADED, DropshipFile.ERROR, DropshipFile.CANCELED
-        @fileList.getFileContents file, (blob) =>
+        @fileList.getFileContents file, (error, blob) =>
           if blob
             file.blob = blob
             @uploadController.addFile file, callback
@@ -188,16 +191,22 @@ class EventPageController
         return if barrierCount isnt 0
         dropboxChrome.signOut =>
           @fileList.removeDb =>
-            chrome.extension.sendMessage notice: 'update_files'
+            console.log 'reset'
+            chrome.extension.sendMessage notice: 'reset_files'
             callback()
 
       # Stop all transfers.
       for own uid, file of files
         switch file.state()
           when DropshipFile.DOWNLOADING
+            barrierCount += 1
             @downloadController.removeFile file, => barrier()
           when DropshipFile.UPLOADING
+            barrierCount += 1
             @uploadController.removeFile file, => barrier()
+          when DropshipFile.SAVING
+            barrierCount += 1
+            @fileController.cancelSetFileContents file, => barrier()
       barrier()
 
   # Called when the Dropbox API server returns an error.
@@ -216,15 +225,10 @@ class EventPageController
             if error
               chrome.extension.sendMessage(
                   notice: 'update_file', fileUid: file.uid)
-              return
-
-            if file.state() is DropshipFile.CANCELED
-              # User cancelled while committing to IndexedDB.
-              return
-
-            @uploadController.addFile file, =>
-              chrome.extension.sendMessage(
-                  notice: 'update_file', fileUid: file.uid)
+        when DropshipFile.SAVED
+          @uploadController.addFile file, =>
+            chrome.extension.sendMessage(
+                notice: 'update_file', fileUid: file.uid)
         when DropshipFile.UPLOADED
           @fileList.removeFileContents file, (error) -> null
 

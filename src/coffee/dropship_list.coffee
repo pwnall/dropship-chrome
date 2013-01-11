@@ -8,12 +8,19 @@ class DropshipList
     @_db = null
     @_dbLoadCallbacks = null
     @_fileGetCallbacks = null
+    @_iops = {}
     @onDbError = new Dropbox.EventSource
+    @onStateChange = new Dropbox.EventSource
 
   # @property {Dropbox.EventSource<String>} fires non-cancelable events when a
   #   database error occurs; listeners should update the UI to reflect the
   #   error
   onDbError: null
+
+  # @property {Dropbox.EventSource<DropshipFile>} non-cancelable event fired
+  #   when IndexedDB file I/O makes progress, completes, or stops due to an
+  #   error; this event does not fire when the file I/O is canceled
+  onStateChange: null
 
   # Adds a file to the list of files to be downloaded / uploaded.
   #
@@ -129,22 +136,62 @@ class DropshipList
   #
   # @param {DropshipFile} file the file whose contents changed
   # @param {Blob} blob the file's contents
-  # @param {function(Boolean)} callback called when the file's contents is
+  # @param {function(?Error)} callback called when the file's contents is
   #   persisted; the callback argument is true if an error occurred
   # @return {DropshipList} this
   setFileContents: (file, blob, callback) ->
     file.setSaveProgress 0
+
+    fileOffset = 0
+    blockId = 0
+    blockLoop = =>
+      # Special case: we store empty files as 1 empty blob.
+      # This lets us distinguish between a non-existing blob and an empty one.
+      done = blockId isnt 0 and fileOffset >= file.size
+      if done
+        file.setSaveSuccess()
+        @onStateChange.dispatch file
+        return callback(null)
+
+      if fileOffset + @blockSize >= blob.size
+        currentBlockSize = blob.size - fileOffset
+      else
+        currentBlockSize = @blockSize
+
+      blockBlob = blob.slice fileOffset, fileOffset + currentBlockSize
+      @setFileBlock file, blockId, blockBlob, (error) =>
+        if error
+          file.setSaveError error
+          @onStateChange.dispatch file
+          return callback(error)
+        blockId += 1
+        fileOffset += currentBlockSize
+        file.setSaveProgress fileOffset
+        @onStateChange.dispatch file
+        blockLoop()
+    blockLoop()
+    @
+
+  # Stores a block of the file's contents in the database.
+  #
+  # @param {DropshipFile} file the file whose contents is being stored
+  # @param {Number} blockId 0-based block sequence number
+  # @param {Blob} blockBlob the contents of the file blob; this is not a Blob
+  #   for the entire file
+  # @param {function(?Error)} callback called when the file's contents is
+  #   persisted; the callback argument is non-null if an error occurred
+  # @return {DropshipList} this
+  setFileBlock: (file, blockId, blockBlob, callback) ->
     @db (db) =>
+      blobKey = @fileBlockKey file, blockId
       transaction = db.transaction 'blobs', 'readwrite'
       blobStore = transaction.objectStore 'blobs'
       try
-        request = blobStore.put file.blob, file.uid
+        request = blobStore.put blockBlob, blobKey
         transaction.oncomplete = =>
-          file.setSaveProgress file.size
-          callback false
+          callback null
         transaction.onerror = (event) =>
-          @handleDbError event
-          callback true
+          callback event.target.error
       catch e
         # Workaround for http://crbug.com/108012
         reader = new FileReader
@@ -153,41 +200,104 @@ class DropshipList
           string = reader.result
           transaction = db.transaction 'blobs', 'readwrite'
           blobStore = transaction.objectStore 'blobs'
-          blobStore.put string, file.uid
+          blobStore.put string, blobKey
           transaction.oncomplete = =>
-            file.setSaveProgress file.size
-            callback false
+            callback null
           transaction.onerror = (event) =>
-            @handleDbError event
-            callback true
-        reader.readAsBinaryString blob
+            callback event.target.error
+        reader.onerror = (event) =>
+          callback event.target.error
+        reader.readAsBinaryString blockBlob
+
+  # Cancels any pending IndexedDB operation involing a file.
+  cancelFileContents: (file, callback) ->
+    # TODO(pwnall): implement
+    callback()
+    @
+
+  # The IndexedDB key for a file block.
+  #
+  # @param {DropshipFile} file the file that the block belongs to
+  # @param {Number} blockId 0-based block sequence number
+  # @return {String} the key associated with the file block in the IndexedDB
+  #   "blobs" table
+  fileBlockKey: (file, blockId) ->
+    # Padding
+    stringId = blockId.toString(36)
+    while stringId.length < 8
+      stringId = "0" + stringId
+
+    "#{file.uid}-#{stringId}"
 
   # Retrieves a file's contents from the database.
   #
   # @param {DropshipFile} file the file whose contents will be retrieved
-  # @param {function(?Blob)} callback called when the file's contents is
-  #   available; the argument will be null if the file's contents was not found
-  #   in the database
+  # @param {function(?Error, ?Blob)} callback called when the file's contents
+  #   is available; the argument will be null if the file's contents was not
+  #   found in the database
   # @return {DropshipList} this
   getFileContents: (file, callback) ->
+    blockBlobs = []
+    fileOffset = 0
+    blockId = 0
+    blockLoop = =>
+      # Special case: we store empty files as 1 empty blob.
+      # This lets us distinguish between a non-existing blob and an empty one.
+      done = blockId isnt 0 and fileOffset >= file.size
+      if done
+        # NOTE: not reporting save success, the fetcher is responsible for
+        #       setting things up
+        @onStateChange.dispatch file
+        return callback(null, new Blob(blockBlobs, type: blockBlobs[0].type))
+
+      @getFileBlock file, blockId, (error, blockBlob) =>
+        if error
+          # Read error.
+          file.setSaveError error
+          @onStateChange.dispatch file
+          return callback(error)
+        if blockBlob is null
+          # Missing block, so report file-not-found.
+          return callback(null, null)
+        blockBlobs.push blockBlob
+        blockId += 1
+        fileOffset += blockBlob.size
+        file.setSaveProgress fileOffset
+        @onStateChange.dispatch file
+        blockLoop()
+    blockLoop()
+    @
+
+  # Retrieves a block of the file's contents from the database.
+  #
+  # @param {DropshipFile} file the file whose contents will be retrieved
+  # @param {Number} blockId 0-based block sequence number
+  # @param {function(?Error, ?Blob)} callback called when the block's contents
+  #   is available; if the block is not found in the database, both the error
+  #   and the blob arguments will be null
+  # @return {DropshipList} this
+  getFileBlock: (file, blockId, callback) ->
     @db (db) =>
+      blobKey = @fileBlockKey file, blockId
       transaction = db.transaction 'blobs', 'readonly'
       blobStore = transaction.objectStore 'blobs'
-      request = blobStore.get file.uid
+      request = blobStore.get blobKey
       request.onsuccess = (event) =>
-        blob = event.target.result
+        blockBlob = event.target.result
+        unless blockBlob?
+          # Incomplete save.
+          return callback(null, null)
+
         # Workaround for http://crbug.com/108012
-        if typeof blob is 'string'
-          string = blob
+        if typeof blockBlob is 'string'
+          string = blockBlob
           view = new Uint8Array string.length
           for i in [0...string.length]
-            view[i] = string.charCodeAt(blob[i]) & 0xFF
-          blob = new Blob [view], type: 'application/octet-stream'
-          callback blob
-        else
-          callback blob
+            view[i] = string.charCodeAt(i) & 0xFF
+          blockBlob = new Blob [view], type: 'application/octet-stream'
+        callback null, blockBlob
       request.onerror = (event) =>
-        callback null
+        callback event.target.error
 
   # Removes a file's contents from the database.
   #
@@ -324,5 +434,8 @@ class DropshipList
 
   # IndexedDB schema version.
   dbVersion: 1
+
+  # The size of an atomic IndexedDB read / write and of a file upload chunk.
+  blockSize: 1 * 1024 * 1024
 
 window.DropshipList = DropshipList

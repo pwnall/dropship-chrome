@@ -12,9 +12,9 @@ class DownloadController
   #   listeners should inform the user that their download was canceled
   onPermissionDenied: null
 
-  # @property {Dropbox.EventSource<DownloadFile>} non-cancelable event fired
-  #   when a file download completes or stops due to an error; this event does
-  #   not fire when a download is canceled
+  # @property {Dropbox.EventSource<DropshipFile>} non-cancelable event fired
+  #   when a file download makes progress, completes, or stops due to an error;
+  #   this event does not fire when a download is canceled
   onStateChange: null
 
   # Adds a file to the list of files to be downloaded.

@@ -50,12 +50,14 @@ class DownloadsView
 
   # Updates one file in the view.
   updateFile: (fileUid) ->
-    unless @fileIndexes[fileUid]
-      return @updateFileList()
-    fileIndex = @fileIndexes[fileUid]
-
     chrome.runtime.getBackgroundPage (eventPage) =>
       eventPage.controller.fileList.getFiles (fileMap) =>
+        unless fileUid of @fileIndexes
+          return @updateFileList()
+        fileIndex = @fileIndexes[fileUid]
+        unless @files[fileIndex].uid is fileUid
+          return @updateFileList()
+
         file = fileMap[fileUid]
         @files[fileIndex] = file
         @updateFileDom @$fileDoms[fileIndex], file
@@ -64,13 +66,14 @@ class DownloadsView
   # Redraws the entire file list.
   renderFileList: ->
     @$fileList.empty()
-    @$fileDoms = []
+    fileDoms = []
     for file in @files
       $fileDom = $ @fileTemplate
       @updateFileDom $fileDom, file
       @$fileList.append $fileDom
       @wireFileDom $fileDom, file
-      @$fileDoms.push $fileDom
+      fileDoms.push $fileDom
+    @$fileDoms = fileDoms
     @
 
   # Sets up event listeners for the buttons in a file's view.
@@ -90,7 +93,7 @@ class DownloadsView
       when DropshipFile.NEW, DropshipFile.DOWNLOADING, DropshipFile.DOWNLOADED
         iconClass = 'icon-spinner icon-spin file-status-inprogress'
         iconTitle = 'Downloading'
-      when DropshipFile.SAVING
+      when DropshipFile.SAVING, DropshipFile.SAVED
         iconClass = 'icon-spinner icon-spin file-status-inprogress'
         iconTitle = 'Preparing to upload'
       when DropshipFile.UPLOADING
@@ -105,7 +108,13 @@ class DownloadsView
       when DropshipFile.ERROR
         iconClass = 'icon-exclamation-sign file-status-error'
         iconTitle = 'Something went wrong'
-    $('.file-item-status i', $fileDom).attr class: iconClass, title: iconTitle
+    $statusDom = $ '.file-item-status i', $fileDom
+    # Changing the <i>'s attributes resets icon animations, so blind writes are
+    # bad.
+    if $statusDom.attr('class') isnt iconClass
+      $statusDom.attr 'class', iconClass
+    if $statusDom.attr('title') isnt iconTitle
+      $statusDom.attr 'title', iconTitle
 
     # Metadata.
     $fileDom.attr 'data-file-uid', file.uid
@@ -130,13 +139,21 @@ class DownloadsView
       $('.file-down-wrapper', $fileDom).attr 'title',
           "#{humanize.numberFormat(file.downloadedBytes(), 0)} bytes downloaded"
 
+    $('.file-save-progress', $fileDom).attr 'value', file.savedBytes()
+    if file.state() >= DropshipFile.SAVING
+      $('.file-save-wrapper', $fileDom).attr 'title',
+          "#{humanize.numberFormat(file.savedBytes(), 0)} / " +
+          "#{humanize.numberFormat(file.size, 0)} bytes saved to disk"
+    else
+      $('.file-save-wrapper', $fileDom).attr 'title', 'waiting for download'
+
     $('.file-up-progress', $fileDom).attr 'value', file.uploadedBytes()
     if file.state() >= DropshipFile.UPLOADING
       $('.file-up-wrapper', $fileDom).attr 'title',
           "#{humanize.numberFormat(file.uploadedBytes(), 0)} / " +
           "#{humanize.numberFormat(file.size, 0)} bytes uploaded to dropbox"
     else
-      $('.file-up-wrapper', $fileDom).attr 'title', 'waiting for download'
+      $('.file-up-wrapper', $fileDom).attr 'title', 'waiting for save'
 
     if file.state() < DropshipFile.DOWNLOADING or
        file.state() >= DropshipFile.UPLOADED

@@ -48,7 +48,7 @@ class UploadController
       return @
 
     try
-      @xhrs[file.uid].cancel()
+      @xhrs[file.uid].abort()
     catch error
       # Ignore the XHR object complaining.
 
@@ -74,7 +74,10 @@ class UploadController
   # Called when an XHR uploading a file makes progress.
   onXhrProgress: (file, event) ->
     # Ignore canceled uploads.
-    return unless @xhrs[file.uid]
+    # Ignore canceled downloads.
+    unless @xhrs[file.uid]
+      event.target.abort()
+      return
 
     uploadedBytes = event.loaded
     totalBytes = if event.lengthComputable then event.total else null

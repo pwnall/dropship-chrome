@@ -1,92 +1,220 @@
+@FontAwesomePath: "/vendor/font";
+@import '../../vendor/less/font-awesome.less';
+
+@import 'fonts.less';
+
 html, body {
   margin: 0;
   padding: 0;
+  font-family: "Source Sans Pro";
+  font-size: 16px;
+  line-height: 1.25;
 }
 
 .hidden {
   display: none !important;
 }
 
+#header {
+  margin: 0;
+  padding: 0.2em 0.5em;
+  box-sizing: border-box;
+  width: 100%;
+  display: table;
+
+  #dropbox-info {
+    display: table-row;
+
+    #dropbox-signout-form {
+      display: table-cell;
+      text-align: left;
+
+      #dropbox-signout {
+        font: inherit;
+        font-size: 13px;
+        font-weight: 400;
+        white-space: nowrap;
+      }
+    }
+
+    #dropbox-identity {
+      display: table-cell;
+      text-align: center;
+
+      margin: 0;
+      padding: 0;
+      min-width: 30em;
+
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 2;
+      white-space: nowrap;
+    }
+
+    #window-actions {
+      display: table-cell;
+      text-align: right;
+      font-size: 20px;
+      white-space: nowrap;
+
+      button {
+        display: inline-block;
+        margin: 0;
+        padding: 0;
+        border: none;
+        background: transparent;
+
+        font: inherit;
+
+        &:hover {
+          text-shadow: rgba(0, 0, 0, 0.5) 1px 1px 2px;
+        }
+        &:active {
+          text-shadow: none;
+        }
+        i:before {
+          width: 1.1em;
+        }
+      }
+
+      #maximize-window-button {
+        color: hsl(120deg, 90%, 30%);
+      }
+      #close-window-button {
+        color: hsl(0deg, 100%, 40%);
+      }
+    }
+  }
+}
+
+
 #file-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: block;
-  border-bottom: 1px solid hsl(0deg, 0, 85%);
+  border-top: 1px solid hsl(0deg, 0, 92%);
 
   .file-item {
-    display: block;
-    margin: 0;
-    padding: 0.33em 0.8em;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-flow: row;
+    flex-flow: row;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
 
-    border-bottom: 1px solid hsl(0deg, 0, 92%);
-    &:last-child {
-      border-bottom: none;
+    margin: 0;
+    padding: 0.33em 0.5em;
+
+    border-top: 1px solid hsl(0deg, 0, 92%);
+    &:first-child {
+      border-top: none;
     }
   }
 
-  .file-item-metadata {
-    display: block;
-    width: 100%;
-    white-space: nowrap;
-    font-size: 16px;
+  .file-item-data {
+    -webkit-flex: 1 1 auto;
 
-    .file-name {
-      display: inline-block;
-      text-align: left;
+    .file-item-metadata {
+      display: block;
+      width: 100%;
+      max-width: 40em;
+      white-space: nowrap;
+      font-size: 18px;
+
+      .file-name {
+        display: inline-block;
+        text-align: left;
+
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .file-size {
+        display: inline-block;
+        margin-left: 1em;
+        text-align: right;
+        white-space: nowrap;
+        font-weight: 300;
+        color: hsl(0, 0%, 50%);
+      }
+    }
+    .file-item-source {
+      display: block;
+      max-width: 40em;
+      font-size: 14px;
+      font-weight: 300;
+      padding-top: 0.15em;
 
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-    }
-    .file-size {
-      display: inline-block;
-      margin-left: 1em;
-      text-align: right;
-      white-space: nowrap;
-    }
-  }
-  .file-item-source {
-    display: block;
-    width: 100%;
-    font-size: 14px;
 
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-
-    .file-item-link {
-      text-decoration: none;
-      color: hsl(218, 85%, 43%);
-      &:visited, &:active {
-        color: hsl(218, 40%, 43%);
+      .file-item-link {
+        text-decoration: none;
+        color: hsl(218deg, 85%, 43%);
+        &:visited, &:active {
+          color: hsl(218deg, 40%, 43%);
+        }
       }
     }
-  }
 
-  .file-item-progress {
-    display: block;
-    .file-down-progress, .file-up-progress {
+    .file-item-progress {
       display: block;
-      margin: 0.33em 0;
-      width: 100%;
+      list-style: none;
+      margin: 0;
+      padding: 0.3em 0 0 0;
+      font-size: 18px;
+
+      .file-down-wrapper, .file-up-wrapper {
+        display: block;
+        vertical-align: middle;
+      }
+      .file-down-progress, .file-up-progress {
+        display: inline-block;
+        margin: 0;
+        width: ~"-webkit-calc(100% - 1.7em)";
+        width: ~"calc(100% - 1.7em)";
+      }
+    }
+
+    .file-item-error {
+      color: hsl(0deg, 75%, 35%);
     }
   }
 
   .file-actions {
+    -webkit-flex: 0 0 auto;
     display: block;
+    width: 1.2em;
+    text-align: right;
+
+    font-size: 18px;
+
+    .file-item-retry {
+      color: hsl(120deg, 75%, 25%);
+    }
+    .file-item-cancel {
+      color: hsl(0deg, 75%, 35%);
+    }
+    button {
+      display: inline-block;
+      margin: 0;
+      padding: 0;
+
+      border: none;
+      background: transparent;
+
+      font: inherit;
+      line-height: 1.25;
+
+      &:hover {
+        text-shadow: rgba(0, 0, 0, 0.6) 1px 1px 3px;
+      }
+      &:active {
+        text-shadow: none;
+      }
+    }
   }
 }
 
-#dropbox-info {
-  margin: 0;
-  padding: 0.5em 0 0.2em 0;
-}
-#dropbox-signout-form {
-  text-align: center;
-}
-#dropbox-identity {
-  font-size: 11px;
-  white-space: nowrap;
-  text-align: center;
-}

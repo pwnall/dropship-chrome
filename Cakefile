@@ -27,13 +27,15 @@ task 'clean', ->
   clean()
 
 build = (callback) ->
-  for dir in ['build', 'build/css', 'build/html', 'build/images', 'build/js',
-              'build/vendor']
+  for dir in ['build', 'build/css', 'build/font', 'build/html', 'build/images',
+              'build/js', 'build/vendor', 'build/vendor/font',
+              'build/vendor/js']
     fs.mkdirSync dir unless fs.existsSync dir
 
   commands = []
   commands.push 'cp src/manifest.json build/'
   commands.push 'cp -r src/html build/'
+  commands.push 'cp -r src/font build/'
   # TODO(pwnall): consider optipng
   commands.push 'cp -r src/images build/'
   for inFile in glob.sync 'src/less/**/*.less'
@@ -42,8 +44,11 @@ build = (callback) ->
                      replace(/\.less$/, '.css')
     commands.push "node_modules/less/bin/lessc --strict-imports #{inFile} " +
                   "> #{outFile}"
-  for inFile in glob.sync 'vendor/*.js'
+  for inFile in glob.sync 'vendor/js/*.js'
     continue if inFile.match /\.min\.js$/
+    outFile = 'build/' + inFile
+    commands.push "cp #{inFile} #{outFile}"
+  for inFile in glob.sync 'vendor/font/*'
     outFile = 'build/' + inFile
     commands.push "cp #{inFile} #{outFile}"
   commands.push 'node_modules/coffee-script/bin/coffee --output build/js ' +
@@ -56,11 +61,16 @@ release = (callback) ->
               'release/js', 'release/vendor']
     fs.mkdirSync dir unless fs.existsSync dir
 
+  if fs.existsSync 'release/dropship-chrome.zip'
+    fs.unlinkSync 'release/dropship-chrome.zip'
+
   commands = []
   commands.push 'cp build/manifest.json release/'
   # TODO(pwnall): consider a html minifier
   commands.push 'cp -r build/html release/'
+  commands.push 'cp -r build/font release/'
   commands.push 'cp -r build/images release/'
+  commands.push 'cp -r build/vendor/font release/vendor/'
   for inFile in glob.sync 'build/js/*.js'
     outFile = inFile.replace /^build\//, 'release/'
     commands.push 'node_modules/uglify-js/bin/uglifyjs --compress --mangle ' +
@@ -68,6 +78,9 @@ release = (callback) ->
   for inFile in glob.sync 'vendor/*.min.js'
     outFile = 'release/' + inFile.replace /\.min\.js$/, '.js'
     commands.push "cp #{inFile} #{outFile}"
+
+  commands.push 'cd release && zip -r -9 -x "*.DS_Store" "*.sw*" @ ' +
+                'dropship-chrome.zip .'
 
   async.forEachSeries commands, run, ->
     callback() if callback
@@ -78,17 +91,25 @@ clean = (callback) ->
       callback
 
 vendor = (callback) ->
-  fs.mkdirSync 'vendor' unless fs.existsSync 'vendor'
+  dirs = ['vendor', 'vendor/js', 'vendor/less', 'vendor/font', 'vendor/tmp']
+  for dir in dirs
+    fs.mkdirSync dir unless fs.existsSync dir
+
   downloads = [
     ['https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/0.8.1/dropbox.min.js',
-     'vendor/dropbox.min.js'],
+     'vendor/js/dropbox.min.js'],
 
     # Zepto.js is a small subset of jQuery.
-    ['http://zeptojs.com/zepto.js', 'vendor/zepto.js'],
-    ['http://zeptojs.com/zepto.min.js', 'vendor/zepto.min.js']
+    ['http://zeptojs.com/zepto.js', 'vendor/js/zepto.js'],
+    ['http://zeptojs.com/zepto.min.js', 'vendor/js/zepto.min.js'],
 
     # Humanize for user-readable sizes.
-    ['https://raw.github.com/taijinlee/humanize/0a97f11503e3844115cfa3dc365cf9884e150e4b/humanize.js', 'vendor/humanize.js']
+    ['https://raw.github.com/taijinlee/humanize/0a97f11503e3844115cfa3dc365cf9884e150e4b/humanize.js',
+     'vendor/js/humanize.js'],
+
+    # FontAwesome for icons.
+    ['https://github.com/FortAwesome/Font-Awesome/archive/v3.0.0.zip',
+     'vendor/tmp/font_awesome.zip'],
   ]
 
   async.forEachSeries downloads, download, ->
@@ -96,21 +117,44 @@ vendor = (callback) ->
     # the extension, copy the dropbox.js files from there.
     commands = []
     if fs.existsSync '../dropbox-js/lib/dropbox.js'
-      commands.push 'cp ../dropbox-js/lib/dropbox.js vendor/'
+      commands.push 'cp ../dropbox-js/lib/dropbox.js vendor/js/'
     else
       # If there is no development dir, use the minified dropbox.js everywhere.
       unless fs.existsSync 'vendor/dropbox.js'
-        commands.push 'cp vendor/dropbox.min.js vendor/dropbox.js'
+        commands.push 'cp vendor/js/dropbox.min.js vendor/js/dropbox.js'
     if fs.existsSync '../dropbox-js/lib/dropbox.min.js'
-      commands.push 'cp ../dropbox-js/lib/dropbox.min.js vendor/'
+      commands.push 'cp ../dropbox-js/lib/dropbox.min.js vendor/js/'
 
     # Minify humanize.
-    unless fs.existsSync 'vendor/humanize.min.js'
+    unless fs.existsSync 'vendor/js/humanize.min.js'
       commands.push 'node_modules/uglify-js/bin/uglifyjs --compress ' +
-          '--mangle --output vendor/humanize.min.js vendor/humanize.js'
+          '--mangle --output vendor/js/humanize.min.js vendor/js/humanize.js'
+
+    # Unpack fontawesome.
+    unless fs.existsSync 'vendor/tmp/Font-Awesome-3.0.0/'
+      commands.push 'unzip -qq -d vendor/tmp vendor/tmp/font_awesome'
+      # Patch fontawesome inplace.
+      commands.push 'sed  -i "" "/^@FontAwesomePath:/d" ' +
+                    'vendor/tmp/Font-Awesome-3.0.0/less/font-awesome.less'
 
     async.forEachSeries commands, run, ->
-      callback() if callback
+      commands = []
+
+      # Copy fontawesome to vendor/.
+      for inFile in glob.sync 'vendor/tmp/Font-Awesome-3.0.0/less/*.less'
+        outFile = inFile.replace /^vendor\/tmp\/Font-Awesome-3\.0\.0\/less\//,
+                                 'vendor/less/'
+        unless fs.existsSync outFile
+          commands.push "cp #{inFile} #{outFile}"
+      for inFile in glob.sync 'vendor/tmp/Font-Awesome-3.0.0/font/*'
+        outFile = inFile.replace /^vendor\/tmp\/Font-Awesome-3\.0\.0\/font\//,
+                                 'vendor/font/'
+        unless fs.existsSync outFile
+          commands.push "cp #{inFile} #{outFile}"
+
+      async.forEachSeries commands, run, ->
+        callback() if callback
+
 
 run = (args...) ->
   for a in args
@@ -133,4 +177,4 @@ download = ([url, file], callback) ->
     callback() if callback?
     return
 
-  run "curl -o #{file} #{url}", callback
+  run "curl -L -o #{file} #{url}", callback

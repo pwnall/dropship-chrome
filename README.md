@@ -3,6 +3,8 @@
 This is a demonstration of using dropbox.js, the client library for the Dropbox
 API, inside a Google Chrome browser extension.
 
+Try out the extension by installing it from the
+[Google Chrome Store](https://chrome.google.com/webstore/detail/download-to-dropbox/mklccdhnpppcmbpbkaanmamjfmmefbnp).
 
 ## Development
 

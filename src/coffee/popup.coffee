@@ -97,20 +97,20 @@ class DownloadsView
 
     $('.file-down-progress', $fileDom).attr 'value', file.downloadedBytes()
     if file.size
-      $('.file-down-progress', $fileDom).attr 'title',
+      $('.file-down-wrapper', $fileDom).attr 'title',
           "#{humanize.numberFormat(file.downloadedBytes(), 0)} / " +
           "#{humanize.numberFormat(file.size, 0)} bytes downloaded"
     else
-      $('.file-down-progress', $fileDom).attr 'title',
+      $('.file-down-wrapper', $fileDom).attr 'title',
           "#{humanize.numberFormat(file.downloadedBytes(), 0)} bytes downloaded"
 
     $('.file-up-progress', $fileDom).attr 'value', file.uploadedBytes()
     if file.state() >= DropshipFile.UPLOADING
-      $('.file-up-progress', $fileDom).attr 'title',
+      $('.file-up-wrapper', $fileDom).attr 'title',
           "#{humanize.numberFormat(file.uploadedBytes(), 0)} / " +
           "#{humanize.numberFormat(file.size, 0)} bytes uploaded to dropbox"
     else
-      $('.file-up-progress', $fileDom).attr 'title', 'waiting for download'
+      $('.file-up-wrapper', $fileDom).attr 'title', 'waiting for download'
 
     if file.state() < DropshipFile.DOWNLOADING or
        file.state() >= DropshipFile.UPLOADED

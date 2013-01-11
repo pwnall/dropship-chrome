@@ -15,6 +15,7 @@
     },
     "default_title": "Starting..."
   },
+  "minimum_chrome_version": "24",
   "permissions": [
     "<all_urls>",
 
@@ -28,7 +29,7 @@
   ],
   "background": {
     "scripts": [
-      "vendor/dropbox.js",
+      "vendor/js/dropbox.js",
       "js/dropbox_chrome.js",
       "js/download_controller.js",
       "js/dropship_file.js",

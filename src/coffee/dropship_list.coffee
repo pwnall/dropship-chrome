@@ -215,7 +215,7 @@ class DropshipList
     callback()
     @
 
-  # The IndexedDB key for a file block.
+  # The IndexedDB key for a file's block.
   #
   # @param {DropshipFile} file the file that the block belongs to
   # @param {Number} blockId 0-based block sequence number
@@ -223,11 +223,17 @@ class DropshipList
   #   "blobs" table
   fileBlockKey: (file, blockId) ->
     # Padding
-    stringId = blockId.toString(36)
+    stringId = blockId.toString 36
     while stringId.length < 8
       stringId = "0" + stringId
 
+    # - comes right before all valid fileUid symbols in ASCII.
     "#{file.uid}-#{stringId}"
+
+  # An upper bound for the IndexedDB keys for a file's blocks.
+  fileMaxBlockKey: (file) ->
+    # | comes after all blockId symbols in ASCII.
+    "#{file.uid}-|"
 
   # Retrieves a file's contents from the database.
   #
@@ -310,11 +316,20 @@ class DropshipList
     @db (db) =>
       transaction = db.transaction 'blobs', 'readwrite'
       blobStore = transaction.objectStore 'blobs'
-      request = blobStore.delete file.uid
-      transaction.oncomplete = =>
-        callback false
-      transaction.onerror = (event) =>
-        @handleDbError event
+      keyRange = IDBKeyRange.bound @fileBlockKey(file, 0),
+                                   @fileMaxBlockKey(file)
+      cursor = blobStore.openCursor keyRange, 'next'
+      cursor.onsuccess = (event) =>
+        cursor = event.target.result
+        if cursor and cursor.key
+          request = cursor.delete()
+          request.onsuccess = (event) =>
+            cursor.continue()
+          request.onerror = (event) =>
+            callback true
+        else
+          callback false
+      cursor.onerror = (event) =>
         callback true
 
   # Removes the contents of files whose metadata is missing.

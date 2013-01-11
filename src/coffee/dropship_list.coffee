@@ -222,6 +222,23 @@ class DropshipList
     # TODO(pwnall): implement blob enumeration and kill dangling blobs
     @
 
+  # @param {function(Boolean)} callback called when the vacuuming completes;
+  #   the callback argument is true if an error occurred
+  # @return {DropshopList} this
+  removeDb: (callback) ->
+    @db (db) =>
+      db.close() if db
+      request = indexedDB.deleteDatabase @dbName
+      request.oncomplete = =>
+        @_db = null
+        @_files = null
+        callback false
+      request.onerror = (event) =>
+        @onDbError.dispatch event.target.error
+        @_db = null
+        @_files = null
+        callback true
+
   # The IndexedDB database caching this extension's files.
   #
   # @param {function(IDBDatabase)} callback called when the database is ready

@@ -178,6 +178,28 @@ class EventPageController
         callback()
     @
 
+  # Called when the user wishes to sign out of Dropbox.
+  signOut: (callback) ->
+    @fileList.getFiles (files) =>
+      # After all transfers are stopped, sign out and delete everything.
+      barrierCount = 1
+      barrier = =>
+        barrierCount -= 1
+        return if barrierCount isnt 0
+        dropboxChrome.signOut =>
+          @fileList.removeDb =>
+            chrome.extension.sendMessage notice: 'update_files'
+            callback()
+
+      # Stop all transfers.
+      for own uid, file of files
+        switch file.state()
+          when DropshipFile.DOWNLOADING
+            @downloadController.removeFile file, => barrier()
+          when DropshipFile.UPLOADING
+            @uploadController.removeFile file, => barrier()
+      barrier()
+
   # Called when the Dropbox API server returns an error.
   onDropboxError: (client, error) ->
     @errorNotice "Something went wrong while talking to Dropbox: #{error}"

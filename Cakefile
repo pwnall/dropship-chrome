@@ -58,7 +58,8 @@ build = (callback) ->
 
 release = (callback) ->
   for dir in ['release', 'release/css', 'release/html', 'release/images',
-              'release/js', 'release/vendor']
+              'release/js', 'release/vendor', 'release/vendor/font',
+              'release/vendor/js']
     fs.mkdirSync dir unless fs.existsSync dir
 
   if fs.existsSync 'release/dropship-chrome.zip'
@@ -71,11 +72,17 @@ release = (callback) ->
   commands.push 'cp -r build/font release/'
   commands.push 'cp -r build/images release/'
   commands.push 'cp -r build/vendor/font release/vendor/'
+  for inFile in glob.sync 'src/less/**/*.less'
+    continue if path.basename(inFile).match /^_/
+    outFile = inFile.replace(/^src\/less\//, 'release/css/').
+                     replace(/\.less$/, '.css')
+    commands.push "node_modules/less/bin/lessc --compress --strict-imports " +
+                  "#{inFile} > #{outFile}"
   for inFile in glob.sync 'build/js/*.js'
     outFile = inFile.replace /^build\//, 'release/'
     commands.push 'node_modules/uglify-js/bin/uglifyjs --compress --mangle ' +
                   "--output #{outFile} #{inFile}"
-  for inFile in glob.sync 'vendor/*.min.js'
+  for inFile in glob.sync 'vendor/js/*.min.js'
     outFile = 'release/' + inFile.replace /\.min\.js$/, '.js'
     commands.push "cp #{inFile} #{outFile}"
 

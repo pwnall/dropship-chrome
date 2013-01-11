@@ -26,8 +26,9 @@ class UploadController
 
     @dropboxChrome.client (client) =>
       xhrListener = (dbXhr) =>
-        dbXhr.xhr.upload.addEventListener 'progress', (event) =>
-          @onXhrProgress file, event
+        xhr = dbXhr.xhr
+        xhr.upload.addEventListener 'progress', (event) =>
+          @onXhrUploadProgress file, xhr, event
       client.onXhr.addListener xhrListener
       @xhrs[file.uid] = client.writeFile file.basename(), file.blob,
           noOverwrite: true, (error, stat) => @onDropboxWrite file, error, stat
@@ -47,6 +48,7 @@ class UploadController
       callback()
       return @
 
+    delete @xhrs[file.uid]  # Avoid getting an error callback.
     try
       @xhrs[file.uid].abort()
     catch error
@@ -72,11 +74,11 @@ class UploadController
       @onStateChange.dispatch file
 
   # Called when an XHR uploading a file makes progress.
-  onXhrProgress: (file, event) ->
+  onXhrUploadProgress: (file, xhr, event) ->
     # Ignore canceled uploads.
     # Ignore canceled downloads.
     unless @xhrs[file.uid]
-      event.target.abort()
+      xhr.abort()
       return
 
     uploadedBytes = event.loaded

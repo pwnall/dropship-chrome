@@ -6,6 +6,10 @@ class DownloadsView
     @$userEmail = $ '#dropbox-email', @$userInfo
     @$signoutButton = $ '#dropbox-signout', @$userInfo
     @$signoutButton.click (event) => @onSignoutClick event
+    @$closeButton = $ '#close-window-button', @$root
+    @$closeButton.click (event) => @onCloseClick event
+    @$maximizeButton = $ '#maximize-window-button', @$root
+    @$maximizeButton.click (event) => @onMaximizeClick event
     @$fileList = $ '#file-list', @$root
     @fileTemplate = $('#file-item-template', @$root).text()
 
@@ -81,6 +85,28 @@ class DownloadsView
 
   # Updates the DOM for a file entry to reflect the file's current state.
   updateFileDom: ($fileDom, file) ->
+    # Status.
+    switch file.state()
+      when DropshipFile.NEW, DropshipFile.DOWNLOADING, DropshipFile.DOWNLOADED
+        iconClass = 'icon-spinner icon-spin file-status-inprogress'
+        iconTitle = 'Downloading'
+      when DropshipFile.SAVING
+        iconClass = 'icon-spinner icon-spin file-status-inprogress'
+        iconTitle = 'Preparing to upload'
+      when DropshipFile.UPLOADING
+        iconClass = 'icon-spinner icon-spin file-status-inprogress'
+        iconTitle = 'Saving to Dropbox'
+      when DropshipFile.UPLOADED
+        iconClass = 'icon-ok file-status-done'
+        iconTitle = 'Saved to Dropbox'
+      when DropshipFile.CANCELED
+        iconClass = 'icon-ban-circle file-status-canceled'
+        iconTitle = 'Canceled'
+      when DropshipFile.ERROR
+        iconClass = 'icon-exclamation-sign file-status-error'
+        iconTitle = 'Something went wrong'
+    $('.file-item-status i', $fileDom).attr class: iconClass, title: iconTitle
+
     # Metadata.
     $fileDom.attr 'data-file-uid', file.uid
     $('.file-name', $fileDom).text file.basename()
@@ -169,12 +195,21 @@ class DownloadsView
 
   # Called when the user clicks on the 'Sign out' button.
   onSignoutClick: (event) ->
-    event.preventDefault()
     @$signoutButton.attr 'disabled', true
+    event.preventDefault()
+    window.close()
     chrome.runtime.getBackgroundPage (eventPage) ->
-      eventPage.controller.dropboxChrome.signOut ->
-        window.close()
+      eventPage.controller.signOut => null
     false
+
+  # Called when the user clicks on the window close button.
+  onCloseClick: (event) ->
+    window.close()
+
+  # Called when the user clicks on the window maximize button.
+  onMaximizeClick: (event) ->
+    chrome.tabs.create url: 'html/popup.html', active: true, pinned: false
+    window.close()
 
   # Called when a Chrome extension internal message is received.
   onMessage: (message) ->

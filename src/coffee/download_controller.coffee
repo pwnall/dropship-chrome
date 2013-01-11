@@ -57,6 +57,7 @@ class DownloadController
       callback()
       return @
 
+    delete @xhrs[file.uid]  # Avoid getting an error callback.
     try
       @xhrs[file.uid].abort()
     catch error

@@ -13,8 +13,9 @@
     <header id="header">
       <section id="dropbox-info">
         <form id="dropbox-signout-form" action="">
-          <button type="submit" id="dropbox-signout">
-            <i class="icon-signout"></i> Sign out of Dropbox
+          <button type="submit" id="dropbox-signout"
+                  title="Sign out of Dropbox">
+            <i class="icon-off"></i>
           </button>
         </form>
         <p id="dropbox-identity">
@@ -22,10 +23,11 @@
           &lt;<span id="dropbox-email"></span>&gt;
         </p>
         <div id="window-actions">
-          <button type="button" id="maximize-window-button">
+          <button type="button" id="maximize-window-button"
+                  title="Open in new tab">
             <i class="icon-plus-sign"></i>
-          </button>
-          <button type="button" id="close-window-button">
+          </button><button type="button" id="close-window-button"
+                           title="Close">
             <i class="icon-remove-sign"></i>
           </button>
         <div>
@@ -36,42 +38,47 @@
     </ol>
     <script type="text/template" id="file-item-template">
       <li class="file-item">
-        <div class="file-item-data">
-          <div class="file-item-metadata">
-            <span class="file-name"></span>
-            <span class="file-size"></span>
+        <div class="file-item-main">
+          <div class="file-item-status">
+            <i class=""></i>
           </div>
-          <div class="file-item-source">
-            <a class="file-item-link"></a>
+          <div class="file-item-data">
+            <div class="file-item-metadata">
+              <span class="file-name"></span>
+              <span class="file-size"></span>
+            </div>
+            <div class="file-item-source">
+              <a class="file-item-link"></a>
+            </div>
+            <div class="file-item-error" class="hidden">
+              <span class="file-error-text"></span>
+            </div>
           </div>
-          <div class="file-item-error" class="hidden">
-            <span class="file-error-text">
+          <div class="file-actions">
+            <button type="button" class="file-item-hide hidden"
+                    title="Hide">
+              <i class="icon-remove"></i>
+            </button>
+            <button type="button" class="file-item-retry hidden"
+                    title="Retry transfer">
+              <i class="icon-repeat"></i>
+            </button>
+            <button type="button" class="file-item-cancel hidden"
+                    title="Stop transfer">
+              <i class="icon-minus-sign"></i>
+            </button>
           </div>
-          <ol class="file-item-progress" class="hidden">
-            <li class="file-down-wrapper">
-              <i class="icon-download"></i>
-              <progress class="file-down-progress"></progress>
-            </li>
-            <li class="file-up-wrapper">
-              <i class="icon-upload"></i>
-              <progress class="file-up-progress"></progress>
-            </li>
-          </ol>
         </div>
-        <div class="file-actions">
-          <button type="button" class="file-item-hide hidden"
-                  title="Hide">
-            <i class="icon-remove"></i>
-          </button>
-          <button type="button" class="file-item-retry hidden"
-                  title="Retry transfer">
-            <i class="icon-repeat"></i>
-          </button>
-          <button type="button" class="file-item-cancel hidden"
-                  title="Stop transfer">
-            <i class="icon-minus-sign"></i>
-          </button>
-        </div>
+        <ol class="file-item-progress" class="hidden">
+          <li class="file-down-wrapper">
+            <i class="icon-download"></i>
+            <progress class="file-down-progress"></progress>
+          </li>
+          <li class="file-up-wrapper">
+            <i class="icon-upload"></i>
+            <progress class="file-up-progress"></progress>
+          </li>
+        </ol>
       </li>
     </script>
   </body>

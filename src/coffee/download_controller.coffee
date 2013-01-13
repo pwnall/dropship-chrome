@@ -34,10 +34,10 @@ class DownloadController
 
       # NOTE: using Dropbox.Xhr for brevity; for robustness, XMLHttpRequest
       #       should be used directly
-      dbXhr = new Dropbox.Xhr 'GET', file.url
+      dbXhr = new Dropbox.Xhr file.httpMethod, file.url
       dbXhr.setResponseType 'blob'
-      if file.referrer
-        dbXhr.setHeader 'Referer', file.referrer
+      for own name, value of file.headers
+        dbXhr.setHeader name, value
       dbXhr.prepare()
       @xhrs[file.uid] = dbXhr.xhr
       dbXhr.xhr.addEventListener 'progress', (event) =>

@@ -2,8 +2,9 @@
 class DropshipFile
   # @param {Object} options one or more of the attributes below
   # @option options {String} url URL where the file is downloaded from
-  # @option options {String} referrer value of the Referer header of the
-  #   downloading HTTP request
+  # @option options {String} httpMethod the verb used to download the file
+  # @option options {Object<String, String>} headers HTTP headers to be set
+  #   when downloading the file
   # @option options {Number} startedAt the time when the user asked to have the
   #   file downloaded
   # @option options {String} uid identifying string, unique to an extension
@@ -16,7 +17,8 @@ class DropshipFile
   #   download/upload error
   constructor: (options) ->
     @url = options.url
-    @referrer = options.referrer or null
+    @httpMethod = options.httpMethod or 'GET'
+    @headers = options.headers or {}
     @dropboxPath = options.dropboxPath or null
     @startedAt = options.startedAt or Date.now()
     @uid = options.uid or DropshipFile.randomUid()
@@ -39,8 +41,11 @@ class DropshipFile
   # @property {String} URL where the file is downloaded from
   url: null
 
-  # @property {String} value of the Referer header when downloading the file
-  referrer: null
+  # @property {Object<String, String>} HTTP headers used to download the file
+  headers: null
+
+  # @property {String} HTTP method (verb) used to download the file
+  httpMethod: null
 
   # @property {String} the path of this file, relative to the application's
   #   Dropbox folder
@@ -66,9 +71,9 @@ class DropshipFile
   #   file's contents
   json: ->
     @_json ||=
-        url: @url, referrer: @referrer, dropboxPath: @dropboxPath,
-        startedAt: @startedAt, uid: @uid, size: @size, state: @_state,
-        errorText: @errorText
+        url: @url, headers: @headers, httpMethod: @httpMethod,
+        dropboxPath: @dropboxPath, startedAt: @startedAt, uid: @uid,
+        size: @size, state: @_state, errorText: @errorText
 
   # @return {String} the file's name without the path, query string and
   #   URL fragment

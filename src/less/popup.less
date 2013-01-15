@@ -145,6 +145,7 @@ html, body {
       display: block;
       width: 100%;
       max-width: 40em;
+
       white-space: nowrap;
       font-size: 18px;
 
@@ -167,7 +168,9 @@ html, body {
     }
     .file-item-source {
       display: block;
+      width: 100%;
       max-width: 40em;
+
       font-size: 14px;
       font-weight: 300;
       padding-top: 0.15em;
@@ -186,7 +189,12 @@ html, body {
     }
 
     .file-item-error {
+      display: block;
+      width: 100%;
+      max-width: 40em;
       color: hsl(0deg, 75%, 35%);
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 

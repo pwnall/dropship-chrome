@@ -30,7 +30,7 @@ class DropshipList
   # @return {DropshipList} this
   addFile: (file, callback) ->
     @db (db) =>
-      @files (files) =>
+      @getFiles (files) =>
         transaction = db.transaction 'metadata', 'readwrite'
         metadataStore = transaction.objectStore 'metadata'
         request = metadataStore.put file.json()
@@ -50,7 +50,7 @@ class DropshipList
   # @return {DropshipList} this
   updateFileState: (file, callback) ->
     @db (db) =>
-      @files (files) =>
+      @getFiles (files) =>
         transaction = db.transaction 'metadata', 'readwrite'
         metadataStore = transaction.objectStore 'metadata'
         request = metadataStore.put file.json()
@@ -366,7 +366,7 @@ class DropshipList
   # @return {DropshopList} this
   removeDb: (callback) ->
     @db (db) =>
-      @files (files) =>
+      @getFiles (files) =>
         db.close() if db
         request = indexedDB.deleteDatabase @dbName
         request.oncomplete = =>

@@ -6,6 +6,8 @@ class DownloadsView
     @$userEmail = $ '#dropbox-email', @$userInfo
     @$signoutButton = $ '#dropbox-signout', @$userInfo
     @$signoutButton.click (event) => @onSignoutClick event
+    @$cleanupButton = $ '#cleanup-files-button', @$root
+    @$cleanupButton.click (event) => @onCleanupClick event
     @$closeButton = $ '#close-window-button', @$root
     @$closeButton.click (event) => @onCloseClick event
     @$maximizeButton = $ '#maximize-window-button', @$root
@@ -209,6 +211,13 @@ class DownloadsView
     $(event.target).attr 'disabled', true
     chrome.runtime.getBackgroundPage (eventPage) ->
       eventPage.controller.removeFile file, -> null
+    false
+
+  # Called when the user clicks on the cleanup downloads button.
+  onCleanupClick: (event) ->
+    event.preventDefault()
+    chrome.runtime.getBackgroundPage (eventPage) ->
+      eventPage.controller.removeUploadedFiles -> null
     false
 
   # Called when the user clicks on the 'Sign out' button.

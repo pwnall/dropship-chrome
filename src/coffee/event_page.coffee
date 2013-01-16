@@ -181,6 +181,23 @@ class EventPageController
         callback()
     @
 
+  # Called when the user asks to have completed transfers bulk-removed.
+  #
+  # This works like calling removeFiles on the files, but does the removing in
+  # one IndexedDB transaction and requires a single DOM rebuild in the popup.
+  removeUploadedFiles: (callback) ->
+    @fileList.getFiles (files) =>
+      uploadedFiles = []
+      for uid, file of files
+        if file.state() is DropshipFile.UPLOADED
+          uploadedFiles.push file
+
+      @fileList.removeFileStates uploadedFiles, ->
+        chrome.extension.sendMessage notice: 'update_files'
+        callback()
+    @
+
+
   # Called when the user wishes to sign out of Dropbox.
   signOut: (callback) ->
     @fileList.getFiles (files) =>

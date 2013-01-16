@@ -115,7 +115,7 @@ vendor = (callback) ->
      'vendor/js/humanize.js'],
 
     # FontAwesome for icons.
-    ['https://github.com/FortAwesome/Font-Awesome/archive/v3.0.0.zip',
+    ['https://github.com/FortAwesome/Font-Awesome/archive/v3.0.1.zip',
      'vendor/tmp/font_awesome.zip'],
   ]
 
@@ -138,23 +138,23 @@ vendor = (callback) ->
           '--mangle --output vendor/js/humanize.min.js vendor/js/humanize.js'
 
     # Unpack fontawesome.
-    unless fs.existsSync 'vendor/tmp/Font-Awesome-3.0.0/'
+    unless fs.existsSync 'vendor/tmp/Font-Awesome-3.0.1/'
       commands.push 'unzip -qq -d vendor/tmp vendor/tmp/font_awesome'
       # Patch fontawesome inplace.
-      commands.push 'sed  -i "" "/^@FontAwesomePath:/d" ' +
-                    'vendor/tmp/Font-Awesome-3.0.0/less/font-awesome.less'
+      commands.push 'sed -i -e "/^@FontAwesomePath:/d" ' +
+                    'vendor/tmp/Font-Awesome-3.0.1/less/font-awesome.less'
 
     async.forEachSeries commands, run, ->
       commands = []
 
       # Copy fontawesome to vendor/.
-      for inFile in glob.sync 'vendor/tmp/Font-Awesome-3.0.0/less/*.less'
-        outFile = inFile.replace /^vendor\/tmp\/Font-Awesome-3\.0\.0\/less\//,
+      for inFile in glob.sync 'vendor/tmp/Font-Awesome-3.0.1/less/*.less'
+        outFile = inFile.replace /^vendor\/tmp\/Font-Awesome-3\.0\.1\/less\//,
                                  'vendor/less/'
         unless fs.existsSync outFile
           commands.push "cp #{inFile} #{outFile}"
-      for inFile in glob.sync 'vendor/tmp/Font-Awesome-3.0.0/font/*'
-        outFile = inFile.replace /^vendor\/tmp\/Font-Awesome-3\.0\.0\/font\//,
+      for inFile in glob.sync 'vendor/tmp/Font-Awesome-3.0.1/font/*'
+        outFile = inFile.replace /^vendor\/tmp\/Font-Awesome-3\.0\.1\/font\//,
                                  'vendor/font/'
         unless fs.existsSync outFile
           commands.push "cp #{inFile} #{outFile}"

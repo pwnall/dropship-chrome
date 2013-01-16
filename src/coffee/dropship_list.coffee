@@ -30,15 +30,16 @@ class DropshipList
   # @return {DropshipList} this
   addFile: (file, callback) ->
     @db (db) =>
-      transaction = db.transaction 'metadata', 'readwrite'
-      metadataStore = transaction.objectStore 'metadata'
-      request = metadataStore.put file.json()
-      transaction.oncomplete = =>
-        @_files[file.uid] = file
-        callback false
-      transaction.onerror = (event) =>
-        @handleDbError event
-        callback true
+      @files (files) =>
+        transaction = db.transaction 'metadata', 'readwrite'
+        metadataStore = transaction.objectStore 'metadata'
+        request = metadataStore.put file.json()
+        transaction.oncomplete = =>
+          files[file.uid] = file
+          callback false
+        transaction.onerror = (event) =>
+          @handleDbError event
+          callback true
     @
 
   # Updates the persisted metadata for a file to reflect changes.
@@ -49,15 +50,16 @@ class DropshipList
   # @return {DropshipList} this
   updateFileState: (file, callback) ->
     @db (db) =>
-      transaction = db.transaction 'metadata', 'readwrite'
-      metadataStore = transaction.objectStore 'metadata'
-      request = metadataStore.put file.json()
-      transaction.oncomplete = =>
-        @_files[file.uid] = file
-        callback false
-      transaction.onerror = (event) =>
-        @handleDbError event
-        callback true
+      @files (files) =>
+        transaction = db.transaction 'metadata', 'readwrite'
+        metadataStore = transaction.objectStore 'metadata'
+        request = metadataStore.put file.json()
+        transaction.oncomplete = =>
+          files[file.uid] = file
+          callback false
+        transaction.onerror = (event) =>
+          @handleDbError event
+          callback true
     @
 
   # Removes the metadata for a file.
@@ -67,16 +69,28 @@ class DropshipList
   #   removed; the callback argument is true if an error occurred
   # @return {DropshipList} this
   removeFileState: (file, callback) ->
+    @removeFileStates [file], callback
+
+  # Removes the metadata for a set of files.
+  #
+  # @param {Array<DropshipFile>} files the files to be removed
+  # @param {function(Boolean)} callback called when the file's data is
+  #   removed; the callback argument is true if an error occurred
+  # @return {DropshipList} this
+  removeFileStates: (files, callback) ->
     @db (db) =>
-      transaction = db.transaction 'metadata', 'readwrite'
-      metadataStore = transaction.objectStore 'metadata'
-      request = metadataStore.delete file.uid
-      transaction.oncomplete = =>
-        delete @_files[file.uid]
-        callback false
-      transaction.onerror = (event) =>
-        @handleDbError event
-        callback true
+      @getFiles (_files) =>
+        transaction = db.transaction 'metadata', 'readwrite'
+        metadataStore = transaction.objectStore 'metadata'
+        for file in files
+          metadataStore.delete file.uid
+        transaction.oncomplete = =>
+          for file in files
+            delete _files[file.uid]
+          callback null
+        transaction.onerror = (event) =>
+          @handleDbError event
+          callback event.target.error
     @
 
   # The mapping between file IDs and completed / in-progress file operations.
@@ -326,11 +340,11 @@ class DropshipList
           request.onsuccess = (event) =>
             cursor.continue()
           request.onerror = (event) =>
-            callback true
+            callback event.target.error
         else
-          callback false
+          callback null
       cursor.onerror = (event) =>
-        callback true
+        callback event.target.error
 
   # Removes the contents of files whose metadata is missing.
   #
@@ -352,17 +366,18 @@ class DropshipList
   # @return {DropshopList} this
   removeDb: (callback) ->
     @db (db) =>
-      db.close() if db
-      request = indexedDB.deleteDatabase @dbName
-      request.oncomplete = =>
-        @_db = null
-        @_files = null
-        callback false
-      request.onerror = (event) =>
-        @onDbError.dispatch event.target.error
-        @_db = null
-        @_files = null
-        callback true
+      @files (files) =>
+        db.close() if db
+        request = indexedDB.deleteDatabase @dbName
+        request.oncomplete = =>
+          @_db = null
+          @_files = null
+          callback false
+        request.onerror = (event) =>
+          @onDbError.dispatch event.target.error
+          @_db = null
+          @_files = null
+          callback true
 
   # The IndexedDB database caching this extension's files.
   #

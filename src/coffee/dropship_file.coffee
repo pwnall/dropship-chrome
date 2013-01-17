@@ -11,6 +11,10 @@ class DropshipFile
   #   instance
   # @option options {Number} size file's size, in bytes; this is only known
   #   after the file's download starts
+  # @option options {Dropbox.UploadCursor} uploadCursor the progress of this
+  #   file's upload
+  # @option options {String} dropboxPath the path of this file, relative to the
+  #   application's Dropbox folder
   # @option options {Number} state file's progress in the download / upload
   #   process
   # @option options {String} errorText user-friendly message describing the
@@ -24,6 +28,10 @@ class DropshipFile
     @uid = options.uid or DropshipFile.randomUid()
     @size = options.size
     @size = null unless @size or @size is 0
+    @uploadCursor = if options.uploadCursor
+      new Dropbox.UploadCursor options.uploadCursor
+    else
+      null
     @errorText = options.errorText or null
     @_state = options.state or DropshipFile.NEW
 
@@ -32,7 +40,10 @@ class DropshipFile
 
     @_downloadedBytes = 0
     @_savedBytes = 0
-    @_uploadedBytes = 0
+    if @uploadCursor
+      @_uploadedBytes = @uploadCursor.offset
+    else
+      @_uploadedBytes = 0
     @blob = null
 
   # @property {String} identifying string, unique to an extension instance
@@ -73,6 +84,7 @@ class DropshipFile
     @_json ||=
         url: @url, headers: @headers, httpMethod: @httpMethod,
         dropboxPath: @dropboxPath, startedAt: @startedAt, uid: @uid,
+        uploadCursor: @uploadCursor and @uploadCursor.json(),
         size: @size, state: @_state, errorText: @errorText
 
   # @return {String} the file's name without the path, query string and
@@ -104,9 +116,39 @@ class DropshipFile
   setDownloadProgress: (downloadedBytes, totalBytes) ->
     @_state = DropshipFile.DOWNLOADING
     @_downloadedBytes = downloadedBytes
-    @_savedBytes = 0
-    @_uploadedBytes = 0
     @size = totalBytes if totalBytes
+    @_json = null
+    @
+
+  # Called while the file is being saved to IndexedDB.
+  #
+  # @param {Number} savedBytes the number of bytes that have been already
+  #   written to IndexedDB
+  # @return {DropshipFile} this
+  setSaveProgress: (savedBytes) ->
+    @_state = DropshipFile.SAVING
+    @_savedBytes = savedBytes
+    @
+
+  # Called while the file is uploading.
+  #
+  # @param {Number} uploadedBytes number of bytes that have been uploaded to
+  #   Dropbox
+  # @return {DropshipFile} this
+  setUploadProgress: (uploadedBytes) ->
+    @_state = DropshipFile.UPLOADING
+    @_uploadedBytes = uploadedBytes
+    @_json = null
+    @
+
+  # Called when a step in a multi-step upload completes.
+  #
+  # @param {Dropbox.UploadCursor} cursor the upload's progress
+  # @return {DropshipFile} this
+  setUploadCursor: (cursor) ->
+    @_state = DropshipFile.UPLOADING
+    @uploadCursor = cursor
+    @_uploadedBytes = cursor.offset
     @_json = null
     @
 
@@ -137,33 +179,6 @@ class DropshipFile
       @size
     else
       0
-
-  # Called while the file is uploading.
-  #
-  # @param {Number} uploadedBytes should be smaller or equal to totalBytes,
-  #   if totalBytes is not null
-  # @param {?Number} totalBytes the upload size, if known; null otherwise
-  # @return {DropshipFile} this
-  setUploadProgress: (uploadedBytes, totalBytes) ->
-    @_state = DropshipFile.UPLOADING
-    if totalBytes
-      uploadOverhead = totalBytes - @size
-      @_uploadedBytes = uploadedBytes - uploadOverhead
-      @_uploadedBytes = 0 if @_uploadedBytes < 0
-    else
-      @_uploadedBytes = uploadedBytes
-    @_json = null
-    @
-
-  # Called while the file is being saved to IndexedDB.
-  #
-  # @param {Number} savedBytes the number of bytes that have been already
-  #   written to IndexedDB
-  # @return {DropshipFile} this
-  setSaveProgress: (savedBytes) ->
-    @_state = DropshipFile.SAVING
-    @_savedBytes = savedBytes
-    @
 
   # Called when the file is fully saved to IndexedDB.
   #

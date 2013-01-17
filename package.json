@@ -11,7 +11,7 @@
     "url": "https://github.com/pwnall/dropship-chrome.git"
   },
   "engines": {
-    "chrome": ">= 23.0.1271.95"
+    "chrome": ">= 24"
   },
   "devDependencies": {
     "async": ">= 0.1.22",

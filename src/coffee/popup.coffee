@@ -127,42 +127,41 @@ class DownloadsView
       $('.file-size', $fileDom).text(humanize.filesize(file.size)).
           attr 'title', humanize.numberFormat(file.size, 0)
 
-    # Progress bars.
-    if file.size
-      $('progress', $fileDom).attr 'max', file.size
+    # Progress bar and icon.
+    state = file.state()
+    if state >= DropshipFile.UPLOADED or state < DropshipFile.DOWNLOADING
+      $('.file-progress-wrapper', $fileDom).addClass 'hidden'
     else
-      $('progress', $fileDom).removeAttr 'max'
+      $('.file-progress-wrapper', $fileDom).removeClass 'hidden'
 
-    $('.file-down-progress', $fileDom).attr 'value', file.downloadedBytes()
-    if file.size
-      $('.file-down-wrapper', $fileDom).attr 'title',
-          "#{humanize.numberFormat(file.downloadedBytes(), 0)} / " +
-          "#{humanize.numberFormat(file.size, 0)} bytes downloaded"
-    else
-      $('.file-down-wrapper', $fileDom).attr 'title',
-          "#{humanize.numberFormat(file.downloadedBytes(), 0)} bytes downloaded"
+      if file.size
+        $('.file-item-progress', $fileDom).attr 'max', file.size *
+            (@downloadProgressWeight + @saveProgressWeight +
+             @uploadProgressWeight)
+      else
+        $('.file-item-progress', $fileDom).removeAttr 'max'
 
-    $('.file-save-progress', $fileDom).attr 'value', file.savedBytes()
-    if file.state() >= DropshipFile.SAVING
-      $('.file-save-wrapper', $fileDom).attr 'title',
-          "#{humanize.numberFormat(file.savedBytes(), 0)} / " +
-          "#{humanize.numberFormat(file.size, 0)} bytes saved to disk"
-    else
-      $('.file-save-wrapper', $fileDom).attr 'title', 'waiting for download'
+      $('.file-item-progress', $fileDom).attr 'value',
+          file.downloadedBytes() * @downloadProgressWeight +
+          file.savedBytes() * @saveProgressWeight +
+          file.uploadedBytes() * @uploadProgressWeight
 
-    $('.file-up-progress', $fileDom).attr 'value', file.uploadedBytes()
-    if file.state() >= DropshipFile.UPLOADING
-      $('.file-up-wrapper', $fileDom).attr 'title',
-          "#{humanize.numberFormat(file.uploadedBytes(), 0)} / " +
-          "#{humanize.numberFormat(file.size, 0)} bytes uploaded to dropbox"
-    else
-      $('.file-up-wrapper', $fileDom).attr 'title', 'waiting for save'
-
-    if file.state() < DropshipFile.DOWNLOADING or
-       file.state() >= DropshipFile.UPLOADED
-      $('.file-item-progress', $fileDom).addClass 'hidden'
-    else
-      $('.file-item-progress', $fileDom).removeClass 'hidden'
+      if state >= DropshipFile.UPLOADING
+        $('.file-item-progress', $fileDom).attr 'title',
+            "#{humanize.numberFormat(file.uploadedBytes(), 0)} / " +
+            "#{humanize.numberFormat(file.size, 0)} bytes uploaded to dropbox"
+        iconClass = 'icon-upload'
+      else if file.state() >= DropshipFile.SAVING
+        $('.file-item-progress', $fileDom).attr 'title',
+            "#{humanize.numberFormat(file.savedBytes(), 0)} / " +
+            "#{humanize.numberFormat(file.size, 0)} bytes saved to disk"
+        iconClass = 'icon-hdd'
+      else
+        $('.file-item-progress', $fileDom).attr 'title',
+            "#{humanize.numberFormat(file.downloadedBytes(), 0)} / " +
+            "#{humanize.numberFormat(file.size, 0)} bytes downloaded"
+        iconClass = 'icon-download'
+      $('.file-progress-wrapper i', $fileDom).attr 'class', iconClass
 
     # Error display.
     if file.state() >= DropshipFile.ERROR
@@ -245,6 +244,21 @@ class DownloadsView
         @updateFile message.fileUid
       when 'update_files'
         @updateFileList()
+
+  # How much of the progress bar is taken up by downloading.
+  #
+  # This is a heuristic. Weights don't need to add up to 1.
+  downloadProgressWeight: 0.4
+
+  # How much of the progress bar is taken up by saving the file to disk.
+  #
+  # This is a heuristic. Weights don't need to add up to 1.
+  saveProgressWeight: 0.1
+
+  # How much of the progress bar is taken up by uploading the file.
+  #
+  # This is a heuristic. Weights don't need to add up to 1.
+  uploadProgressWeight: 0.5
 
 $ ->
   # The view is in the global namespace to facilitate debugging.

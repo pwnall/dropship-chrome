@@ -37,6 +37,7 @@ class DownloadController
       dbXhr = new Dropbox.Xhr file.httpMethod, file.url
       dbXhr.setResponseType 'blob'
       for own name, value of file.headers
+        continue if name.toLowerCase() of @restrictedHeaders
         dbXhr.setHeader name, value
       dbXhr.prepare()
       @xhrs[file.uid] = dbXhr.xhr
@@ -136,5 +137,32 @@ class DownloadController
           return callback()
         chrome.permissions.remove origins: ['<all_urls>'], -> callback()
     @
+
+  # Headers that cannot be set via XHR.
+  #
+  # List lifted from the W3C spec:
+  #   http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
+  restrictedHeaders:
+      'accept-charset': true
+      'accept-encoding': true
+      'access-control-request-headers': true
+      'access-control-request-method': true
+      'connection': true
+      'content-length': true
+      'cookie': true
+      'cookie2': true
+      'date': true
+      'dnt': true
+      'expect': true
+      'host': true
+      'keep-alive': true
+      'origin': true
+      'referer': true
+      'te': true
+      'trailer': true
+      'transfer-encoding': true
+      'upgrade': true
+      'user-agent': true
+      'via': true
 
 window.DownloadController = DownloadController

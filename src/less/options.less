@@ -1,0 +1,81 @@
+@FontAwesomePath: "/vendor/font";
+@import '../../vendor/less/font-awesome.less';
+
+@import '_fonts.less';
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: "Source Sans Pro";
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.25;
+
+  vertical-align: baseline;
+}
+
+.hidden {
+  display: none !important;
+}
+
+nav {
+  display: table-cell;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: default;
+}
+section#page-container {
+  display: table-cell;
+  margin: 0;
+  padding: 0 0 0 3em;
+}
+
+
+h1 {
+  font-weight: 300;
+  color: hsl(210deg, 60%, 50%);
+  font-size: 20px;
+  line-height: 1.75;
+
+  padding: 0 0 0 16px;
+}
+#nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 2;
+  color: hsl(0deg, 0%, 33%);
+}
+.nav-list-item {
+  margin: 0;
+  padding: 0;
+
+  &:hover {
+    background-color: hsl(208deg, 30%, 95%);
+    color: hsl(0, 0%, 0%);
+  }
+  &.current {
+    font-weight: 400;
+    color: hsl(0, 0%, 0%);
+  }
+
+  a, a:hover, a:focus {
+    margin: 0;
+    padding: 0 0 0 16px;
+    display: block;
+
+    color: inherit;
+    text-decoration: none;
+  }
+}
+
+
+h2 {
+  font-weight: 600;
+  font-size: 20px;
+  border-bottom: 1px solid hsl(0deg, 0%, 85%);
+  line-height: 1.75;
+}

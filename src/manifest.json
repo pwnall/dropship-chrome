@@ -39,6 +39,7 @@
     ],
     "persistent": false
   },
+  "options_page": "html/options.html",
   "web_accessible_resources": [
     "images/icon16.png",
     "images/icon48.png",

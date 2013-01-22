@@ -34,6 +34,7 @@
       "js/download_controller.js",
       "js/dropship_file.js",
       "js/dropship_list.js",
+      "js/options_model.js",
       "js/upload_controller.js",
       "js/event_page.js"
     ],

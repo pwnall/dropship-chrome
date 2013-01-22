@@ -13,6 +13,8 @@ class EventPageController
       client.onAuthStateChange.addListener => @onDropboxAuthChange client
       client.onError.addListener (error) => @onDropboxError client, error
 
+    @options = new Options
+
     @downloadController = new DownloadController
     @downloadController.onPermissionDenied.addListener =>
       @errorNotice 'Download canceled due to denied permissions'

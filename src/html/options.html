@@ -13,7 +13,7 @@
       </h1>
       <ol id="nav-list">
         <li class="nav-list-item">
-          <a href="#download-options">Folder</a>
+          <a href="#download-flags">Folder</a>
         </li>
         <li class="nav-list-item">
           <a href="#dropbox-account">Dropbox Account</a>
@@ -21,8 +21,29 @@
       </ol>
     </nav>
     <section id="page-container" class="hidden">
-      <article id="download-options">
+
+      <article id="download-flags">
         <h2>Download Folder</h2>
+
+        <form id="download-flags-form" action="">
+          <p>
+            <label for="download-site-folder">
+              <input type="checkbox" id="download-site-folder" />
+              Group downloads by site
+            </label>
+          </p>
+          <p>
+            <label for="download-site-date">
+              <input type="checkbox" id="download-site-date" />
+              Group downloads by date
+            </label>
+          </p>
+          <p>
+            If you download something from <em>dropbox.com</em> today, it will
+            be saved in
+            <span id="download-folder-sample"></span>
+          </p>
+        </form>
       </article>
 
       <article id="dropbox-account">

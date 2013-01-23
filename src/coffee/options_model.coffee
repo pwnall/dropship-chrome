@@ -47,6 +47,19 @@ class Options
       callback() if callback
     @
 
+  # Computes the location of a downloaded item for the example in options.
+  #
+  # @param {Object<String, Object>} items object passed to an
+  #   OptionsModel#items() callback
+  # @return {String} the download location, relative to the user's Dropbox
+  sampleDownloadFolder: (items, callback) ->
+    folder = '/Apps/Chrome Downloads'
+    if items.downloadDateFolder
+      folder += '/' + humanize.date('Y-m-d', Date.now())
+    if items.downloadSiteFolder
+      folder += '/www.dropbox.com'
+    folder
+
   # Fills in default values for missing settings.
   #
   # @private

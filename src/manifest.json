@@ -30,6 +30,7 @@
   "background": {
     "scripts": [
       "vendor/js/dropbox.js",
+      "vendor/js/humanize.js",
       "js/dropbox_chrome.js",
       "js/download_controller.js",
       "js/dropship_file.js",

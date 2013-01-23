@@ -55,9 +55,9 @@ class Options
   sampleDownloadFolder: (items, callback) ->
     folder = '/Apps/Chrome Downloads'
     if items.downloadDateFolder
-      folder += '/' + humanize.date('Y-m-d', Date.now())
+      folder += '/' + humanize.date('Y-m-d', new Date())
     if items.downloadSiteFolder
-      folder += '/www.dropbox.com'
+      folder += '/en.wikipedia.org'
     folder
 
   # Fills in default values for missing settings.
@@ -69,10 +69,10 @@ class Options
   #   OptionsModel#items() callback
   # @return
   addDefaults: (items) ->
-    unless 'downloadSiteFolders' of items
-      items.downloadSiteFolders = false
-    unless 'downloadDateFolders' of items
-      items.downloadDateFolders = false
+    unless 'downloadSiteFolder' of items
+      items.downloadSiteFolder = false
+    unless 'downloadDateFolder' of items
+      items.downloadDateFolder = false
     items
 
   # Number of milliseconds during which settings are cached.

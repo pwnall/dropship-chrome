@@ -36,8 +36,8 @@ class OptionsView
     chrome.runtime.getBackgroundPage (eventPage) =>
       options = eventPage.controller.options
       options.items (items) =>
-        @$downloadSiteFolder.val items.downloadSiteFolder
-        @$downloadDateFolder.val items.downloadDateFolder
+        @$downloadSiteFolder.prop 'checked', items.downloadSiteFolder
+        @$downloadDateFolder.prop 'checked', items.downloadDateFolder
         @$downloadFolderSample.text options.sampleDownloadFolder(items)
 
         callback()
@@ -48,11 +48,11 @@ class OptionsView
     chrome.runtime.getBackgroundPage (eventPage) =>
       options = eventPage.controller.options
       options.items (items) =>
-        items.downloadSiteFolder = @$downloadSiteFolder.val()
-        items.downloadDateFolder = @$downloadDateFolder.val()
+        items.downloadSiteFolder = @$downloadSiteFolder.prop 'checked'
+        items.downloadDateFolder = @$downloadDateFolder.prop 'checked'
         @$downloadFolderSample.text options.sampleDownloadFolder(items)
 
-        items.setItems items, -> null
+        options.setItems items, -> null
     @
 
   # Changes the markup classes to show the page identified by the hashtag.

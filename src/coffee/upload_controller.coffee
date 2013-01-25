@@ -2,7 +2,8 @@
 class UploadController
   # @param {Dropbox.Chrome} dropboxChrome Chrome extension-friendly wraper for
   #   the Dropbox client to be used for uploading
-  constructor: (@dropboxChrome) ->
+  # @param {Options}
+  constructor: (@dropboxChrome, @options) ->
     @files = {}
     @xhrs = {}
     @onStateChange = new Dropbox.EventSource
@@ -61,15 +62,17 @@ class UploadController
   # @return {UploadController} this
   atomicUpload: (file, callback) ->
     @dropboxChrome.client (client) =>
-      xhrListener = (dbXhr) =>
-        xhr = dbXhr.xhr
-        xhr.upload.addEventListener 'progress', (event) =>
-          @onXhrUploadProgress file, xhr, event
-      client.onXhr.addListener xhrListener
-      @xhrs[file.uid] = client.writeFile file.uploadBasename(), file.blob,
-          noOverwrite: true, (error, stat) => @onDropboxWrite file, error, stat
-      client.onXhr.removeListener xhrListener
-      callback()
+      @options.items (items) =>
+        xhrListener = (dbXhr) =>
+          xhr = dbXhr.xhr
+          xhr.upload.addEventListener 'progress', (event) =>
+            @onXhrUploadProgress file, xhr, event
+        filePath = @options.downloadPath file, items
+        client.onXhr.addListener xhrListener
+        @xhrs[file.uid] = client.writeFile filePath, file.blob,
+            noOverwrite: true, (error, stat) => @onDropboxWrite file, error, stat
+        client.onXhr.removeListener xhrListener
+        callback()
     @
 
   # Called when a Dropbox write request completes.
@@ -123,10 +126,12 @@ class UploadController
   # @return {UploadController} this
   resumableUploadFinish: (file, callback) ->
     @dropboxChrome.client (client) =>
-      @xhrs[file.uid] = client.resumableUploadFinish file.uploadBasename(),
-          file.uploadCursor, noOverwrite: true,
-          (error, stat) => @onDropboxWrite file, error, stat
-      callback()
+      @options.items (items) =>
+        filePath = @options.downloadPath file, items
+        @xhrs[file.uid] = client.resumableUploadFinish filePath,
+            file.uploadCursor, noOverwrite: true,
+            (error, stat) => @onDropboxWrite file, error, stat
+        callback()
     @
 
   # Called when a step in a multi-step Dropbox write request completes.

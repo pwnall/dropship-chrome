@@ -114,6 +114,10 @@ vendor = (callback) ->
     ['https://raw.github.com/taijinlee/humanize/0a97f11503e3844115cfa3dc365cf9884e150e4b/humanize.js',
      'vendor/js/humanize.js'],
 
+    # URI.js for URL parsing.
+    ['https://raw.github.com/medialize/URI.js/v1.8.3/src/URI.min.js',
+     'vendor/js/uri.min.js'],
+
     # FontAwesome for icons.
     ['https://github.com/FortAwesome/Font-Awesome/archive/v3.0.2.zip',
      'vendor/tmp/font_awesome.zip'],
@@ -136,6 +140,10 @@ vendor = (callback) ->
     unless fs.existsSync 'vendor/js/humanize.min.js'
       commands.push 'node_modules/uglify-js/bin/uglifyjs --compress ' +
           '--mangle --output vendor/js/humanize.min.js vendor/js/humanize.js'
+
+    # Use minified URI.js everywhere.
+    unless fs.existsSync 'vendor/js/uri.js'
+      commands.push 'cp vendor/js/uri.min.js vendor/js/uri.js'
 
     # Unpack fontawesome.
     unless fs.existsSync 'vendor/tmp/Font-Awesome-3.0.2/'

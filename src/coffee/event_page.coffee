@@ -21,7 +21,7 @@ class EventPageController
     @downloadController.onStateChange.addListener (file) =>
       @onFileStateChange file
 
-    @uploadController = new UploadController @dropboxChrome
+    @uploadController = new UploadController @dropboxChrome, @options
     @uploadController.onStateChange.addListener (file) =>
       @onFileStateChange file
 

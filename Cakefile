@@ -130,7 +130,7 @@ vendor = (callback) ->
     # the extension, copy the dropbox.js files from there.
     commands = []
     if fs.existsSync '../dropbox-js/lib/dropbox.js'
-      commands.push 'cp ../dropbox-js/lib/dropbox*.js vendor/js/'
+      commands.push 'cp ../dropbox-js/lib/dropbox.js vendor/js/'
     if fs.existsSync '../dropbox-js/lib/dropbox.min.js'
       commands.push 'cp ../dropbox-js/lib/dropbox.min.js vendor/js/'
 

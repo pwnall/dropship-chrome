@@ -103,8 +103,10 @@ vendor = (callback) ->
     fs.mkdirSync dir unless fs.existsSync dir
 
   downloads = [
-    ['https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/0.8.1/dropbox.min.js',
+    ['https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/0.9.0/dropbox.min.js',
      'vendor/js/dropbox.min.js'],
+    ['https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/0.9.0/dropbox.js',
+     'vendor/js/dropbox.js'],
 
     # Zepto.js is a small subset of jQuery.
     ['http://zeptojs.com/zepto.js', 'vendor/js/zepto.js'],
@@ -128,11 +130,7 @@ vendor = (callback) ->
     # the extension, copy the dropbox.js files from there.
     commands = []
     if fs.existsSync '../dropbox-js/lib/dropbox.js'
-      commands.push 'cp ../dropbox-js/lib/dropbox.js vendor/js/'
-    else
-      # If there is no development dir, use the minified dropbox.js everywhere.
-      unless fs.existsSync 'vendor/dropbox.js'
-        commands.push 'cp vendor/js/dropbox.min.js vendor/js/dropbox.js'
+      commands.push 'cp ../dropbox-js/lib/dropbox*.js vendor/js/'
     if fs.existsSync '../dropbox-js/lib/dropbox.min.js'
       commands.push 'cp ../dropbox-js/lib/dropbox.min.js vendor/js/'
 

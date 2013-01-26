@@ -1,16 +1,18 @@
 class DownloadsView
   constructor: (@root) ->
     @$root = $ @root
-    @$userInfo = $ '#dropbox-info', @$root
+    @$header = $ '#header', @$root
+    @$userInfo = $ '#dropbox-info', @$header
+    @$userNoInfo = $ '#dropbox-no-info', @$header
     @$userName = $ '#dropbox-name', @$userInfo
     @$userEmail = $ '#dropbox-email', @$userInfo
-    @$signoutButton = $ '#dropbox-signout', @$userInfo
-    @$signoutButton.click (event) => @onSignoutClick event
-    @$cleanupButton = $ '#cleanup-files-button', @$root
+    @$optionsButton = $ '#options-button', @$header
+    @$optionsButton.click (event) => @onOptionsClick event
+    @$cleanupButton = $ '#cleanup-files-button', @$header
     @$cleanupButton.click (event) => @onCleanupClick event
-    @$closeButton = $ '#close-window-button', @$root
+    @$closeButton = $ '#close-window-button', @$header
     @$closeButton.click (event) => @onCloseClick event
-    @$maximizeButton = $ '#maximize-window-button', @$root
+    @$maximizeButton = $ '#maximize-window-button', @$header
     @$maximizeButton.click (event) => @onMaximizeClick event
     @$fileList = $ '#file-list', @$root
     @fileTemplate = $('#file-item-template', @$root).text()
@@ -28,9 +30,14 @@ class DownloadsView
   reloadUserInfo: ->
     chrome.runtime.getBackgroundPage (eventPage) =>
       eventPage.controller.dropboxChrome.userInfo (userInfo) =>
-        @$userInfo.removeClass 'hidden'
-        @$userName.text userInfo.name
-        @$userEmail.text userInfo.email
+        if userInfo.name
+          @$userInfo.removeClass 'hidden'
+          @$userNoInfo.addClass 'hidden'
+          @$userName.text userInfo.name
+          @$userEmail.text userInfo.email
+        else
+          @$userInfo.addClass 'hidden'
+          @$userNoInfo.removeClass 'hidden'
     @
 
   # Updates the entire file list view.
@@ -219,14 +226,10 @@ class DownloadsView
       eventPage.controller.removeUploadedFiles -> null
     false
 
-  # Called when the user clicks on the 'Sign out' button.
-  onSignoutClick: (event) ->
-    @$signoutButton.attr 'disabled', true
-    event.preventDefault()
+  # called when the user clicks on the settings button.
+  onOptionsClick: (event) ->
+    chrome.tabs.create url: 'html/options.html', active: true, pinned: false
     window.close()
-    chrome.runtime.getBackgroundPage (eventPage) ->
-      eventPage.controller.signOut => null
-    false
 
   # Called when the user clicks on the window close button.
   onCloseClick: (event) ->
@@ -244,6 +247,8 @@ class DownloadsView
         @updateFile message.fileUid
       when 'update_files'
         @updateFileList()
+      when 'dropbox_auth'
+        @reloadUserInfo()
 
   # How much of the progress bar is taken up by downloading.
   #

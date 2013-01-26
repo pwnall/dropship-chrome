@@ -7,6 +7,9 @@ class OptionsView
     @$userEmail = $ '#dropbox-email', @$userInfo
     @$signoutButton = $ '#dropbox-signout', @$userInfo
     @$signoutButton.on 'click', (event) => @onSignoutClick event
+    @$userNoInfo = $ '#dropbox-no-info', @$root
+    @$signinButton = $ '#dropbox-signin', @$userNoInfo
+    @$signinButton.on 'click', (event) => @onSigninClick event
     @$navItems = $ '#nav-list .nav-list-item', @$root
     @$navLinks = $ '#nav-list .nav-list-item a', @$root
     @$pageContainer = $ '#page-container', @$root
@@ -70,17 +73,38 @@ class OptionsView
       $navItem.toggleClass 'current', $navLink.attr('href') is pageHash
     @
 
-  # Updates the preferences to reflect a
-  onDownloadFormChange: ->
+  # Called when the user clicks on the 'Sign out' button.
+  onSignoutClick: (event) ->
+    event.preventDefault()
+    chrome.runtime.getBackgroundPage (eventPage) ->
+      eventPage.controller.signOut => null
+    false
+
+  # Called when the user clicks on the 'Sign in' button.
+  onSigninClick: (event) ->
+    chrome.runtime.getBackgroundPage (eventPage) ->
+      eventPage.controller.signIn => null
+    false
 
   # Updates the Dropbox user information in the view.
   reloadUserInfo: ->
     chrome.runtime.getBackgroundPage (eventPage) =>
       eventPage.controller.dropboxChrome.userInfo (userInfo) =>
-        @$userInfo.removeClass 'hidden'
-        @$userName.text userInfo.name
-        @$userEmail.text userInfo.email
+        if userInfo.name
+          @$userNoInfo.addClass 'hidden'
+          @$userInfo.removeClass 'hidden'
+          @$userName.text userInfo.name
+          @$userEmail.text userInfo.email
+        else
+          @$userNoInfo.removeClass 'hidden'
+          @$userInfo.addClass 'hidden'
     @
+
+  # Called when a Chrome extension internal message is received.
+  onMessage: (message) ->
+    switch message.notice
+      when 'dropbox_auth'
+        @reloadUserInfo()
 
   # The page that is shown when the options view is shown.
   defaultPage: 'download-flags'

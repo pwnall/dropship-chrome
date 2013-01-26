@@ -23,7 +23,7 @@ html, body {
   display: table;
   background-color: hsl(0deg, 0%, 96%);
 
-  #dropbox-info {
+  #header-bar {
     display: table-row;
 
     #dropbox-signout-form {
@@ -32,15 +32,15 @@ html, body {
       font-size: 20px;
       white-space: nowrap;
 
-      #dropbox-signout {
-        color: hsl(0deg, 75%, 35%);
+      #options-button {
+        color: hsl(0deg, 0%, 35%);
       }
       #cleanup-files-button {
         color: hsl(0deg, 0%, 35%);
       }
     }
 
-    #dropbox-identity {
+    #dropbox-info, #dropbox-no-info {
       display: table-cell;
       text-align: center;
 
@@ -48,9 +48,16 @@ html, body {
       padding: 0;
       min-width: 30em;
 
+      white-space: nowrap;
+    }
+    #dropbox-info {
       font-size: 14px;
       font-weight: 400;
-      white-space: nowrap;
+    }
+    #dropbox-no-info {
+      font-size: 14px;
+      font-weight: 300;
+      font-style: italic;
     }
 
     #window-actions {

@@ -58,8 +58,7 @@ class EventPageController
         client.reset()
 
       # Start the sign-in process.
-      client.authenticate (error) ->
-        client.reset() if error
+      @signIn -> null
 
   # Called by Chrome when the user clicks the extension's context menu item.
   onContextMenu: (clickData) ->
@@ -107,6 +106,8 @@ class EventPageController
         chrome.browserAction.setTitle title: 'Click to sign into Dropbox'
         chrome.browserAction.setBadgeText text: '?'
         chrome.browserAction.setBadgeBackgroundColor color: '#DF2020'
+
+    chrome.extension.sendMessage notice: 'dropbox_auth'
 
   # Resumes the ongoing downloads / uploads.
   restoreFiles: (callback) ->
@@ -226,6 +227,13 @@ class EventPageController
             barrierCount += 1
             @fileController.cancelSetFileContents file, => barrier()
       barrier()
+
+  # Called when the user wishes to sign into Dropbox.
+  signIn: (callback) ->
+    @dropboxChrome.client (client) ->
+      client.authenticate (error) ->
+        client.reset() if error
+        callback()
 
   # Called when the Dropbox API server returns an error.
   onDropboxError: (client, error) ->

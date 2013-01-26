@@ -48,7 +48,7 @@
 
       <article id="dropbox-account">
         <h2>Dropbox Account</h2>
-        <div id="dropbox-info">
+        <div id="dropbox-info" class="hidden">
           <p id="dropbox-identity">
             You are signed into Dropbox as
             <span id="dropbox-name"></span>
@@ -56,7 +56,17 @@
           </p>
           <form id="dropbox-signout-form" action="">
             <button type="submit" id="dropbox-signout">
-              <i class="icon-off"> Sign out of Dropbox</i>
+              <i class="icon-off"></i> Sign out of Dropbox
+            </button>
+          </form>
+        </div>
+        <div id="dropbox-no-info" class="hidden">
+          <p id="dropbox-no-identity">
+            You are not signed into Dropbox
+          </p>
+          <form id="dropbox-signin-form" action="">
+            <button type="submit" id="dropbox-signin">
+              <i class="icon-off"></i> Sign in to Dropbox
             </button>
           </form>
         </div>

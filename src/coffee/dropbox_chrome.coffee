@@ -4,7 +4,9 @@ class Dropbox.Chrome
   #     should have the properties 'key' and 'sandbox'
   constructor: (@clientOptions) ->
     @_client = null
+    @_clientCallbacks = null
     @_userInfo = null
+    @_userInfoCallbacks = null
     @onClient = new Dropbox.EventSource
 
   # @property {Dropbox.EventSource<Dropbox.Client>} triggered when a new
@@ -22,16 +24,27 @@ class Dropbox.Chrome
       callback @_client
       return @
 
+    if @_clientCallbacks
+      @_clientCallbacks.push callback
+      return @
+    @_clientCallbacks = [callback]
+
     authDriver = new Dropbox.Drivers.Chrome(
         receiverPath: 'html/chrome_oauth_receiver.html')
     authDriver.loadCredentials (credentials) =>
       unless credentials and credentials.token and credentials.tokenSecret
         # Missing or corrupted credentials.
         credentials = @clientOptions
-      @_client = new Dropbox.Client credentials
-      @_client.authDriver authDriver
-      @onClient.dispatch @_client
-      callback @_client
+      client = new Dropbox.Client credentials
+      client.authDriver authDriver
+      # Invalidate the cached credentials.
+      client.onAuthStateChange.addListener =>
+        @_userInfo = null
+      @onClient.dispatch client
+      @_client = client
+      callbacks = @_clientCallbacks
+      @_clientCallbacks = null
+      callback(@_client) for callback in callbacks
     @
 
   # Returns a (potentially cached) version of the Dropbox user's information.
@@ -42,23 +55,39 @@ class Dropbox.Chrome
   userInfo: (callback) ->
     if @_userInfo
       callback @_userInfo
-      return null
+      return @
+
+    if @_userInfoCallbacks
+      @_userInfoCallbacks.push callback
+      return @
+    @_userInfoCallbacks = [callback]
+
+    dispatchUserInfo = =>
+      callbacks = @_userInfoCallbacks
+      @_userInfoCallbacks = null
+      callback(@_userInfo) for callback in callbacks
 
     chrome.storage.local.get 'dropbox_js_userinfo', (items) =>
-      if items && items.dropbox_js_userinfo
+      if items and items.dropbox_js_userinfo
         try
           @_userInfo = Dropbox.UserInfo.parse items.dropbox_js_userinfo
-          return callback @_userInfo
+          return dispatchUserInfo()
         catch Error
+          @_userInfo = null
           # There was a parsing error. Let the control flow fall.
 
       @client (client) =>
+        unless client.isAuthenticated()
+          @_userInfo = {}
+          return dispatchUserInfo()
         client.getUserInfo (error, userInfo) =>
-          return if error
-          @_userInfo = userInfo
+          if error
+            @_userInfo = {}
+            return dispatchUserInfo()
           chrome.storage.local.set dropbox_js_userinfo: userInfo.json(), =>
-            callback @_userInfo
-    null
+            @_userInfo = userInfo
+            dispatchUserInfo()
+    @
 
   # Signs the user out of Dropbox and clears their cached information.
   #

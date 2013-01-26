@@ -11,19 +11,21 @@
   </head>
   <body>
     <header id="header">
-      <section id="dropbox-info">
+      <div id="header-bar">
         <form id="dropbox-signout-form" action="">
-          <button type="submit" id="dropbox-signout"
-                  title="Sign out of Dropbox">
-            <i class="icon-off"></i>
+          <button id="options-button" title="Options">
+            <i class="icon-cog"></i>
           </button>
           <button id="cleanup-files-button" title="Hide successful downloads">
             <i class="icon-trash"></i>
           </button>
         </form>
-        <p id="dropbox-identity">
+        <p id="dropbox-info" class="hidden">
           <span id="dropbox-name"></span>
           &lt;<span id="dropbox-email"></span>&gt;
+        </p>
+        <p id="dropbox-no-info" class="hidden">
+          Not signed into Dropbox
         </p>
         <div id="window-actions">
           <button type="button" id="maximize-window-button"
@@ -34,7 +36,7 @@
             <i class="icon-remove-sign"></i>
           </button>
         <div>
-      </section>
+      </div>
     </header>
 
     <ol id="file-list">

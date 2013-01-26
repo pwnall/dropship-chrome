@@ -359,6 +359,7 @@ class DropshipList
   vacuumFileContents: (callback) ->
     # TODO(pwnall): implement early exit using count() on blobs and metadata
     # TODO(pwnall): implement blob enumeration and kill dangling blobs
+    callback()
     @
 
   # @param {function(Boolean)} callback called when the vacuuming completes;

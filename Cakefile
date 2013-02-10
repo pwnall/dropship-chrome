@@ -88,6 +88,7 @@ release = (callback) ->
 
   commands.push 'cd release && zip -r -9 -x "*.DS_Store" "*.sw*" @ ' +
                 'dropship-chrome.zip .'
+  commands.push 'mv release/dropship-chrome.zip ./'
 
   async.forEachSeries commands, run, ->
     callback() if callback

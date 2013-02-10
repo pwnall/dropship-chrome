@@ -45,7 +45,7 @@ class EventPageController
 
   # Called by Chrome when the user clicks the browser action.
   onBrowserAction: ->
-    @dropboxChrome.client (client) ->
+    @dropboxChrome.client (client) =>
       if client.isAuthenticated()
         # Chrome did not show up the popup for some reason. Do it here.
         chrome.tabs.create url: 'html/popup.html', active: true, pinned: false

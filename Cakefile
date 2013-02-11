@@ -5,6 +5,7 @@ glob = require 'glob'
 log = console.log
 path = require 'path'
 remove = require 'remove'
+watch = require 'watch'
 
 # Node 0.6 compatibility hack.
 unless fs.existsSync
@@ -25,6 +26,11 @@ task 'vendor', ->
 
 task 'clean', ->
   clean()
+
+task 'watch', ->
+  build ->
+    setupWatch()
+
 
 build = (callback) ->
   for dir in ['build', 'build/css', 'build/font', 'build/html', 'build/images',
@@ -94,9 +100,56 @@ release = (callback) ->
     callback() if callback
 
 clean = (callback) ->
-  remove 'build', ignoreMissing: true, ->
-    remove 'release', ignoreMissing: true,
-      callback
+  removeReleaseCb = ->
+    callback() if callback
+  removeBuildCb = ->
+    fs.exists 'release', (exists) ->
+      if exists
+        fs.remove 'release', removeReleaseCb
+      else
+        callback() if removeReleaseCb
+  fs.exists 'build', (exists) ->
+    if exists
+      fs.remove 'build', removeBuildCb
+    else
+      removeBuildCb()
+
+setupWatch = (callback) ->
+  scheduled = false
+  buildNeeded = false
+  cleanNeeded = false
+  onTick = ->
+    scheduled = false
+    if cleanNeeded
+      buildNeeded = false
+      cleanNeeded = false
+      console.log "Doing a clean build"
+      clean -> build()
+    else if buildNeeded
+      buildNeed = false
+      console.log "Building"
+      build()
+
+  watch.createMonitor 'src/', (monitor) ->
+    monitor.on 'created', (fileName) ->
+      return unless path.basename(fileName)[0] is '.'
+      buildNeeded = true
+      unless scheduled
+        scheduled = true
+        process.nextTick onTick
+    monitor.on 'changed', (fileName) ->
+      return unless path.basename(fileName)[0] is '.'
+      buildNeeded = true
+      unless scheduled
+        scheduled = true
+        process.nextTick onTick
+    monitor.on 'removed', (fileName) ->
+      return unless path.basename(fileName)[0] is '.'
+      cleanNeeded = true
+      buildNeeded = true
+      unless scheduled
+        scheduled = true
+        process.nextTick onTick
 
 vendor = (callback) ->
   dirs = ['vendor', 'vendor/js', 'vendor/less', 'vendor/font', 'vendor/tmp']
@@ -116,6 +169,12 @@ vendor = (callback) ->
     # Humanize for user-readable sizes.
     ['https://raw.github.com/taijinlee/humanize/0a97f11503e3844115cfa3dc365cf9884e150e4b/humanize.js',
      'vendor/js/humanize.js'],
+
+    # Async.js for asynchronous iterators.
+    ['https://raw.github.com/caolan/async/v0.1.22/lib/async.js',
+     'vendor/js/async.js'],
+    ['https://raw.github.com/caolan/async/v0.1.22/dist/async.min.js',
+     'vendor/js/async.min.js'],
 
     # URI.js for URL parsing.
     ['https://raw.github.com/medialize/URI.js/v1.8.3/src/URI.min.js',

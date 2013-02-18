@@ -31,6 +31,12 @@ class EventPageController
       @onFileStateChange file
     @restoreFiles -> null
 
+    @tracker = new WebRequestTracker @options
+    @tracker.onFilterMatch.addListener (file) =>
+      @downloadController.addFile file, =>
+        @fileList.addFile file, =>
+          chrome.extension.sendMessage notice: 'update_files'
+
   # Called by Chrome when the user installs the extension.
   onInstall: ->
     null

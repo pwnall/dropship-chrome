@@ -21,6 +21,13 @@ class OptionsView
     @$downloadDateFolder.on 'change', => @onChange()
     @$downloadFolderSample = $ '#download-folder-sample', @$root
 
+    @$autoDownloadEnable = $ '#auto-download-enable', @$root
+    @$autoDownloadEnable.on 'change', => @onChange()
+    @$autoDownloadExts = $ '#auto-download-exts', @$root
+    @$autoDownloadExts.on 'change', => @onChange()
+    @$autoDownloadMimes = $ '#auto-download-mimes', @$root
+    @$autoDownloadMimes.on 'change', => @onChange()
+
     @updateData =>
       @updateVisiblePage()
       @$pageContainer.removeClass 'hidden'
@@ -43,6 +50,10 @@ class OptionsView
         @$downloadDateFolder.prop 'checked', items.downloadDateFolder
         @$downloadFolderSample.text options.sampleDownloadFolder(items)
 
+        @$autoDownloadEnable.prop 'checked', items.autoDownload
+        @$autoDownloadExts.val items.autoDownloadExts.join(', ')
+        @$autoDownloadMimes.val items.autoDownloadMimes.join(', ')
+
         callback()
     @
 
@@ -54,6 +65,12 @@ class OptionsView
         items.downloadSiteFolder = @$downloadSiteFolder.prop 'checked'
         items.downloadDateFolder = @$downloadDateFolder.prop 'checked'
         @$downloadFolderSample.text options.sampleDownloadFolder(items)
+
+        items.autoDownload = @$autoDownloadEnable.prop 'checked'
+        items.autoDownloadExts =
+            (ext.trim() for ext in @$autoDownloadExts.val().split(','))
+        items.autoDownloadMimes =
+            (mime.trim() for mime in @$autoDownloadMimes.val().split(','))
 
         options.setItems items, -> null
     @

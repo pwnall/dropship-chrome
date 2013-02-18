@@ -16,6 +16,9 @@
           <a href="#download-flags">Folder</a>
         </li>
         <li class="nav-list-item">
+          <a href="#auto-download">Auto-Grab</a>
+        </li>
+        <li class="nav-list-item">
           <a href="#dropbox-account">Dropbox Account</a>
         </li>
       </ol>
@@ -42,6 +45,33 @@
             If you download a page from <em>Wikipedia</em> today, it will
             be saved in
             <span id="download-folder-sample"></span>
+          </p>
+        </form>
+      </article>
+
+      <article id="auto-download" class="hidden">
+        <h2>Auto-Grab</h2>
+
+        <form id="auto-download-form" action="">
+          <p>
+            <label for="auto-download-enable">
+              <input type="checkbox" id="auto-download-enable" />
+              Automatically download files on the Web pages I visit
+            </label>
+          </p>
+          <p>
+            <label for="auto-download-exts">
+              Download files with extensions
+            </label>
+            <input type="text" id="auto-download-exts"
+                   placeholder="pdf, txt" />
+          </p>
+          <p>
+            <label for="auto-download-mimes">
+              Download files with MIME types
+            </label>
+            <input type="text" id="auto-download-mimes"
+                   placeholder="application/pdf, image/*" />
           </p>
         </form>
       </article>

@@ -18,12 +18,12 @@
   "minimum_chrome_version": "24",
   "permissions": [
     "<all_urls>",
-
     "chrome://favicon/",
     "contextMenus",
     "notifications",
     "storage",
-    "unlimitedStorage"
+    "unlimitedStorage",
+    "webRequest"
   ],
   "optional_permissions": [
   ],
@@ -38,9 +38,10 @@
       "js/dropship_list.js",
       "js/options.js",
       "js/upload_controller.js",
+      "js/web_request_tracker.js",
       "js/event_page.js"
     ],
-    "persistent": false
+    "persistent": true
   },
   "options_page": "html/options.html",
   "web_accessible_resources": [

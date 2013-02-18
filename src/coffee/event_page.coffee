@@ -3,7 +3,6 @@ class EventPageController
   constructor: (@dropboxChrome) ->
     chrome.browserAction.onClicked.addListener => @onBrowserAction()
     chrome.contextMenus.onClicked.addListener (data) => @onContextMenu data
-    chrome.extension.onMessage.addListener => @onMessage
     chrome.runtime.onInstalled.addListener =>
       @onInstall()
       @onStart()
@@ -202,7 +201,6 @@ class EventPageController
         callback()
     @
 
-
   # Called when the user wishes to sign out of Dropbox.
   signOut: (callback) ->
     @fileList.getFiles (files) =>
@@ -267,6 +265,6 @@ class EventPageController
 
 
 dropboxChrome = new Dropbox.Chrome(
-  key: 'fOAYMWHVRVA=|pHQC3wPkdQ718FleqazY8eZQmxyhJ5n4G5++PXDYBg==',
-  sandbox: true)
+    key: 'fOAYMWHVRVA=|pHQC3wPkdQ718FleqazY8eZQmxyhJ5n4G5++PXDYBg==',
+    sandbox: true)
 window.controller = new EventPageController dropboxChrome

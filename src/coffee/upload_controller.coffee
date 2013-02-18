@@ -2,7 +2,7 @@
 class UploadController
   # @param {Dropbox.Chrome} dropboxChrome Chrome extension-friendly wraper for
   #   the Dropbox client to be used for uploading
-  # @param {Options}
+  # @param {Options} options the extension's settings manager
   constructor: (@dropboxChrome, @options) ->
     @files = {}
     @xhrs = {}

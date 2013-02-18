@@ -4,8 +4,15 @@ class Options
     @_items = null
     @_itemsCallbacks = null
     @loadedAt = null
+    @onChange = new Dropbox.EventSource
+    chrome.storage.onChanged.addListener (changes, areaName) =>
+      @onStorageChanges changes, areaName
 
-  # Reads the settings from Chrome's synchronied storage.
+  # @property {Dropbox.EventSource<Object<String, Object>>} fires
+  #   non-cancelable events when the extension settings change
+  onChange: null
+
+  # Reads the settings from Chrome's synchronized storage.
   #
   # @param {function(Object<String, Object>)} callback called when the settings
   #   are available
@@ -76,6 +83,17 @@ class Options
       uploadPath = new URI(file.url).hostname() + '/' + uploadPath
     uploadPath
 
+  # Called when the contents of Chrome storage areas change.
+  onStorageChanges: (changes, areaName) ->
+    return unless areaName is 'sync'
+    return unless 'settings' of changes
+
+    items = changes['settings'].newValue or {}
+    @addDefaults items
+    @_items = items
+    @loadedAt = Date.now()
+    @onChange.dispatch @_items
+
   # Fills in default values for missing settings.
   #
   # @private
@@ -89,6 +107,13 @@ class Options
       items.downloadSiteFolder = false
     unless 'downloadDateFolder' of items
       items.downloadDateFolder = false
+    unless 'autoDownload' of items
+      items.autoDownload = false
+    unless 'autoDownloadExts' of items
+      items.autoDownloadExts = []
+    unless 'autoDownloadMimes' of items
+      items.autoDownloadMimes = []
+
     items
 
   # Number of milliseconds during which settings are cached.

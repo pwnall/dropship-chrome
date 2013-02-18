@@ -107,7 +107,7 @@ clean = (callback) ->
       if exists
         fs.remove 'release', removeReleaseCb
       else
-        callback() if removeReleaseCb
+        removeReleaseCb()
   fs.exists 'build', (exists) ->
     if exists
       fs.remove 'build', removeBuildCb
@@ -171,10 +171,8 @@ vendor = (callback) ->
      'vendor/js/humanize.js'],
 
     # Async.js for asynchronous iterators.
-    ['https://raw.github.com/caolan/async/v0.1.22/lib/async.js',
+    ['https://raw.github.com/caolan/async/v0.2.3/lib/async.js',
      'vendor/js/async.js'],
-    ['https://raw.github.com/caolan/async/v0.1.22/dist/async.min.js',
-     'vendor/js/async.min.js'],
 
     # URI.js for URL parsing.
     ['https://raw.github.com/medialize/URI.js/v1.8.3/src/URI.min.js',
@@ -198,6 +196,11 @@ vendor = (callback) ->
     unless fs.existsSync 'vendor/js/humanize.min.js'
       commands.push 'node_modules/uglify-js/bin/uglifyjs --compress ' +
           '--mangle --output vendor/js/humanize.min.js vendor/js/humanize.js'
+
+    # Minify async.js.
+    unless fs.existsSync 'vendor/js/async.min.js'
+      commands.push 'node_modules/uglify-js/bin/uglifyjs --compress ' +
+          '--mangle --output vendor/js/async.min.js vendor/js/async.js'
 
     # Use minified URI.js everywhere.
     unless fs.existsSync 'vendor/js/uri.js'
@@ -250,4 +253,4 @@ download = ([url, file], callback) ->
     callback() if callback?
     return
 
-  run "curl -L -o #{file} #{url}", callback
+  run "curl --fail -L -o #{file} #{url}", callback

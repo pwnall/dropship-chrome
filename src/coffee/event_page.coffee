@@ -34,12 +34,21 @@ class EventPageController
 
   # Called by Chrome when the user installs the extension.
   onInstall: ->
-    chrome.contextMenus.create
-        id: 'download', title: 'Upload to Dropbox', enabled: false,
-        contexts: ['page', 'frame', 'link', 'image', 'video', 'audio']
+    null
 
   # Called by Chrome when the user installs the extension or starts Chrome.
   onStart: ->
+    # NOTE: this was done in onInstall before, but users complained that the
+    #       context menu item disappeared after a while, presumably when the
+    #       event page was destroyed
+    try
+      chrome.contextMenus.create
+          id: 'download', title: 'Upload to Dropbox', enabled: false,
+          contexts: ['page', 'frame', 'link', 'image', 'video', 'audio']
+    catch chromeError
+      # Context menu already created.
+      null
+
     @dropboxChrome.client (client) =>
       @onDropboxAuthChange client
 
@@ -180,14 +189,7 @@ class EventPageController
             @uploadController.addFile file, callback
           else
             @downloadController.addFile file, callback
-      else  # The file got in a different state.
-        callback()
-    @
 
-  # Called when the user asks to have completed transfers bulk-removed.
-  #
-  # This works like calling removeFiles on the files, but does the removing in
-  # one IndexedDB transaction and requires a single DOM rebuild in the popup.
   removeUploadedFiles: (callback) ->
     @fileList.getFiles (files) =>
       uploadedFiles = []

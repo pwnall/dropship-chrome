@@ -1,6 +1,6 @@
 {
   "name": "Download to Dropbox",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "manifest_version": 2,
   "description": "Conveniently download straight into your Dropbox account",
   "icons": {
@@ -48,5 +48,6 @@
     "images/icon48.png",
     "images/icon64.png",
     "images/icon128.png"
-  ]
+  ],
+  "incognito": "split"
 }

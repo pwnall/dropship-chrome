@@ -57,8 +57,9 @@ build = (callback) ->
   for inFile in glob.sync 'vendor/font/*'
     outFile = 'build/' + inFile
     commands.push "cp #{inFile} #{outFile}"
+  commands.push 'cp -r src/coffee build'
   commands.push 'node_modules/coffee-script/bin/coffee --output build/js ' +
-                '--compile src/coffee/*.coffee'
+                '--map --compile build/coffee/*.coffee'
   async.forEachSeries commands, run, ->
     callback() if callback
 

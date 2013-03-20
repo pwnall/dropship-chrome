@@ -158,12 +158,12 @@ vendor = (callback) ->
     fs.mkdirSync dir unless fs.existsSync dir
 
   downloads = [
-    ['https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/0.9.1/dropbox.min.js',
+    ['https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/0.9.2/dropbox.min.js',
      'vendor/js/dropbox.min.js'],
-    ['https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/0.9.1/dropbox.js',
+    ['https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/0.9.2/dropbox.js',
      'vendor/js/dropbox.js'],
 
-    # Zepto.js is a small subset of jQuery.
+    # Zepto.js is a subset of jQuery.
     ['http://zeptojs.com/zepto.js', 'vendor/js/zepto.js'],
     ['http://zeptojs.com/zepto.min.js', 'vendor/js/zepto.min.js'],
 

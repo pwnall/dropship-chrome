@@ -105,7 +105,7 @@ class DropshipFile
     basename = @url.split('#', 2)[0].split('?', 2)[0]
     while basename.substring(basename.length - 1) == '/'
       basename = basename.substring 0, basename.length - 1
-    decodeURIComponent(basename.substring basename.lastIndexOf('/') + 1)
+    decodeURIComponent basename.substring(basename.lastIndexOf('/') + 1)
 
   # Called while the file is downloading.
   #

@@ -9,17 +9,17 @@ class DropshipList
     @_dbLoadCallbacks = null
     @_fileGetCallbacks = null
     @_iops = {}
-    @onDbError = new Dropbox.EventSource
-    @onStateChange = new Dropbox.EventSource
+    @onDbError = new Dropbox.Util.EventSource
+    @onStateChange = new Dropbox.Util.EventSource
 
-  # @property {Dropbox.EventSource<String>} fires non-cancelable events when a
-  #   database error occurs; listeners should update the UI to reflect the
-  #   error
+  # @property {Dropbox.Util.EventSource<String>} fires non-cancelable events
+  #   when a database error occurs; listeners should update the UI to reflect
+  #   the error
   onDbError: null
 
-  # @property {Dropbox.EventSource<DropshipFile>} non-cancelable event fired
-  #   when IndexedDB file I/O makes progress, completes, or stops due to an
-  #   error; this event does not fire when the file I/O is canceled
+  # @property {Dropbox.Util.EventSource<DropshipFile>} non-cancelable event
+  #   fired when IndexedDB file I/O makes progress, completes, or stops due to
+  #   an error; this event does not fire when the file I/O is canceled
   onStateChange: null
 
   # Adds a file to the list of files to be downloaded / uploaded.

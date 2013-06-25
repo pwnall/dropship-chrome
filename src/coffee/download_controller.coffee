@@ -4,17 +4,17 @@ class DownloadController
     @fileCount = 0
     @files = {}
     @xhrs = {}
-    @onPermissionDenied = new Dropbox.EventSource
-    @onStateChange = new Dropbox.EventSource
+    @onPermissionDenied = new Dropbox.Util.EventSource
+    @onStateChange = new Dropbox.Util.EventSource
 
-  # @property {Dropbox.EventSource<null>} non-cancelable event fired when the
-  #   user denies the temporary permissions needed to download a file;
+  # @property {Dropbox.Util.EventSource<null>} non-cancelable event fired when
+  #   the user denies the temporary permissions needed to download a file;
   #   listeners should inform the user that their download was canceled
   onPermissionDenied: null
 
-  # @property {Dropbox.EventSource<DropshipFile>} non-cancelable event fired
-  #   when a file download makes progress, completes, or stops due to an error;
-  #   this event does not fire when a download is canceled
+  # @property {Dropbox.Util.EventSource<DropshipFile>} non-cancelable event
+  #   fired when a file download makes progress, completes, or stops due to an
+  #   error; this event does not fire when a download is canceled
   onStateChange: null
 
   # Adds a file to the list of files to be downloaded.
@@ -32,9 +32,9 @@ class DownloadController
       @fileCount += 1
       @files[file.uid] = file
 
-      # NOTE: using Dropbox.Xhr for brevity; for robustness, XMLHttpRequest
-      #       should be used directly
-      dbXhr = new Dropbox.Xhr file.httpMethod, file.url
+      # NOTE: using Dropbox.Util.Xhr for brevity; for robustness,
+      #       XMLHttpRequest should be used directly
+      dbXhr = new Dropbox.Util.Xhr file.httpMethod, file.url
       dbXhr.setResponseType 'blob'
       for own name, value of file.headers
         continue if name.toLowerCase() of @restrictedHeaders

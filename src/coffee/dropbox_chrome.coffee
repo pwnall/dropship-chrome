@@ -1,15 +1,15 @@
 # Common functionality for Chrome apps / extensions using dropbox.js.
 class Dropbox.Chrome
   # @param {Object} options to be passed to the Dropbox API client; the object
-  #     should have the properties 'key' and 'sandbox'
+  #     should have the property 'key'
   constructor: (@clientOptions) ->
     @_client = null
     @_clientCallbacks = null
     @_userInfo = null
     @_userInfoCallbacks = null
-    @onClient = new Dropbox.EventSource
+    @onClient = new Dropbox.Util.EventSource
 
-  # @property {Dropbox.EventSource<Dropbox.Client>} triggered when a new
+  # @property {Dropbox.Util.EventSource<Dropbox.Client>} triggered when a new
   #   Dropbox.Client instance is created; can be used to attach listeners to
   #   the client
   onClient: null
@@ -29,16 +29,16 @@ class Dropbox.Chrome
       return @
     @_clientCallbacks = [callback]
 
-    authDriver = new Dropbox.Drivers.Chrome(
+    authDriver = new Dropbox.AuthDriver.Chrome(
         receiverPath: 'html/chrome_oauth_receiver.html')
     authDriver.loadCredentials (credentials) =>
-      unless credentials and credentials.token and credentials.tokenSecret
+      unless credentials and credentials.token
         # Missing or corrupted credentials.
         credentials = @clientOptions
       client = new Dropbox.Client credentials
       client.authDriver authDriver
       # Invalidate the cached credentials.
-      client.onAuthStateChange.addListener =>
+      client.onAuthStepChange.addListener =>
         @_userInfo = null
       @onClient.dispatch client
       @_client = client

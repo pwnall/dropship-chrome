@@ -6,11 +6,11 @@ class UploadController
   constructor: (@dropboxChrome, @options) ->
     @files = {}
     @xhrs = {}
-    @onStateChange = new Dropbox.EventSource
+    @onStateChange = new Dropbox.Util.EventSource
 
-  # @property {Dropbox.EventSource<DropshipFile>} non-cancelable event fired
-  #   when a file upload makes progress, completes, or stops due to an error;
-  #   this event does not fire when an upload is canceled
+  # @property {Dropbox.Util.EventSource<DropshipFile>} non-cancelable event
+  #   fired when a file upload makes progress, completes, or stops due to an
+  #   error; this event does not fire when an upload is canceled
   onStateChange: null
 
   # Adds a file to the list of files to be uploaded.
@@ -109,7 +109,7 @@ class UploadController
         xhr.upload.addEventListener 'progress', (event) =>
           @onXhrUploadProgress file, xhr, event
       client.onXhr.addListener xhrListener
-      file.uploadCursor or= new Dropbox.UploadCursor
+      file.uploadCursor or= new Dropbox.Http.UploadCursor
       cursor = file.uploadCursor
       stepBlob = file.blob.slice cursor.offset, cursor.offset + @uploadStepSize
       @xhrs[file.uid] = client.resumableUploadStep stepBlob, cursor,

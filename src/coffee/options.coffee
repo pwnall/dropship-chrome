@@ -4,11 +4,11 @@ class Options
     @_items = null
     @_itemsCallbacks = null
     @loadedAt = null
-    @onChange = new Dropbox.EventSource
+    @onChange = new Dropbox.Util.EventSource
     chrome.storage.onChanged.addListener (changes, areaName) =>
       @onStorageChanges changes, areaName
 
-  # @property {Dropbox.EventSource<Object<String, Object>>} fires
+  # @property {Dropbox.Util.EventSource<Object<String, Object>>} fires
   #   non-cancelable events when the extension settings change
   onChange: null
 

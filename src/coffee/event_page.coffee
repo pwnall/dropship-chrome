@@ -9,7 +9,7 @@ class EventPageController
     chrome.runtime.onStartup.addListener => @onStart()
 
     @dropboxChrome.onClient.addListener (client) =>
-      client.onAuthStateChange.addListener => @onDropboxAuthChange client
+      client.onAuthStepChange.addListener => @onDropboxAuthChange client
       client.onError.addListener (error) => @onDropboxError client, error
 
     @options = new Options
@@ -264,7 +264,5 @@ class EventPageController
         'Download to Dropbox', errorText
 
 
-dropboxChrome = new Dropbox.Chrome(
-    key: 'fOAYMWHVRVA=|pHQC3wPkdQ718FleqazY8eZQmxyhJ5n4G5++PXDYBg==',
-    sandbox: true)
+dropboxChrome = new Dropbox.Chrome key: 'wlnp1hsavamu4ue'
 window.controller = new EventPageController dropboxChrome

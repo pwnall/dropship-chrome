@@ -11,8 +11,8 @@ class DropshipFile
   #   instance
   # @option options {Number} size file's size, in bytes; this is only known
   #   after the file's download starts
-  # @option options {Dropbox.UploadCursor} uploadCursor the progress of this
-  #   file's upload
+  # @option options {Dropbox.Http.UploadCursor} uploadCursor the progress of
+  #   this file's upload
   # @option options {String} dropboxPath the path of this file, relative to the
   #   application's Dropbox folder
   # @option options {Number} state file's progress in the download / upload
@@ -29,7 +29,7 @@ class DropshipFile
     @size = options.size
     @size = null unless @size or @size is 0
     @uploadCursor = if options.uploadCursor
-      new Dropbox.UploadCursor options.uploadCursor
+      new Dropbox.Http.UploadCursor options.uploadCursor
     else
       null
     @errorText = options.errorText or null
@@ -143,7 +143,7 @@ class DropshipFile
 
   # Called when a step in a multi-step upload completes.
   #
-  # @param {Dropbox.UploadCursor} cursor the upload's progress
+  # @param {Dropbox.Http.UploadCursor} cursor the upload's progress
   # @return {DropshipFile} this
   setUploadCursor: (cursor) ->
     @_state = DropshipFile.UPLOADING

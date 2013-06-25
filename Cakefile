@@ -172,7 +172,7 @@ vendor = (callback) ->
     ['http://zeptojs.com/zepto.min.js', 'vendor/js/zepto.min.js'],
 
     # Humanize for user-readable sizes.
-    ['https://raw.github.com/taijinlee/humanize/0a97f11503e3844115cfa3dc365cf9884e150e4b/humanize.js',
+    ['https://raw.github.com/taijinlee/humanize/0.0.7/humanize.js',
      'vendor/js/humanize.js'],
 
     # Async.js for asynchronous iterators.
@@ -180,11 +180,11 @@ vendor = (callback) ->
      'vendor/js/async.js'],
 
     # URI.js for URL parsing.
-    ['https://raw.github.com/medialize/URI.js/v1.8.3/src/URI.min.js',
+    ['https://raw.github.com/medialize/URI.js/v1.10.2/src/URI.min.js',
      'vendor/js/uri.min.js'],
 
     # FontAwesome for icons.
-    ['https://github.com/FortAwesome/Font-Awesome/archive/v3.0.2.zip',
+    ['https://github.com/FortAwesome/Font-Awesome/archive/v3.2.1.zip',
      'vendor/tmp/font_awesome.zip'],
   ]
 
@@ -212,23 +212,23 @@ vendor = (callback) ->
       commands.push 'cp vendor/js/uri.min.js vendor/js/uri.js'
 
     # Unpack fontawesome.
-    unless fs.existsSync 'vendor/tmp/Font-Awesome-3.0.2/'
+    unless fs.existsSync 'vendor/tmp/Font-Awesome-3.2.1/'
       commands.push 'unzip -qq -d vendor/tmp vendor/tmp/font_awesome'
       # Patch fontawesome inplace.
       commands.push 'sed -i -e "/^@FontAwesomePath:/d" ' +
-                    'vendor/tmp/Font-Awesome-3.0.2/less/font-awesome.less'
+                    'vendor/tmp/Font-Awesome-3.2.1/less/variables.less'
 
     async.forEachSeries commands, run, ->
       commands = []
 
       # Copy fontawesome to vendor/.
-      for inFile in glob.sync 'vendor/tmp/Font-Awesome-3.0.2/less/*.less'
-        outFile = inFile.replace /^vendor\/tmp\/Font-Awesome-3\.0\.2\/less\//,
+      for inFile in glob.sync 'vendor/tmp/Font-Awesome-3.2.1/less/*.less'
+        outFile = inFile.replace /^vendor\/tmp\/Font-Awesome-3\.2\.1\/less\//,
                                  'vendor/less/'
         unless fs.existsSync outFile
           commands.push "cp #{inFile} #{outFile}"
-      for inFile in glob.sync 'vendor/tmp/Font-Awesome-3.0.2/font/*'
-        outFile = inFile.replace /^vendor\/tmp\/Font-Awesome-3\.0\.2\/font\//,
+      for inFile in glob.sync 'vendor/tmp/Font-Awesome-3.2.1/font/*'
+        outFile = inFile.replace /^vendor\/tmp\/Font-Awesome-3\.2\.1\/font\//,
                                  'vendor/font/'
         unless fs.existsSync outFile
           commands.push "cp #{inFile} #{outFile}"

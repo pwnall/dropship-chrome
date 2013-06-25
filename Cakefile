@@ -72,8 +72,12 @@ release = (callback) ->
   if fs.existsSync 'release/dropship-chrome.zip'
     fs.unlinkSync 'release/dropship-chrome.zip'
 
+  # Remove the debug key from manifest.json
+  json = fs.readFileSync 'build/manifest.json', encoding: 'utf8'
+  json = json.replace(/^\s*"key":.*$/m, '')
+  fs.writeFileSync 'release/manifest.json', json
+
   commands = []
-  commands.push 'cp build/manifest.json release/'
   # TODO(pwnall): consider a html minifier
   commands.push 'cp -r build/html release/'
   commands.push 'cp -r build/font release/'
@@ -233,21 +237,30 @@ vendor = (callback) ->
         callback() if callback
 
 
-run = (args...) ->
-  for a in args
-    switch typeof a
-      when 'string' then command = a
-      when 'object'
-        if a instanceof Array then params = a
-        else options = a
-      when 'function' then callback = a
-
-  command += ' ' + params.join ' ' if params?
-  cmd = spawn '/bin/sh', ['-c', command], options
-  cmd.stdout.on 'data', (data) -> process.stdout.write data
-  cmd.stderr.on 'data', (data) -> process.stderr.write data
-  process.on 'SIGHUP', -> cmd.kill()
-  cmd.on 'exit', (code) -> callback() if callback? and code is 0
+_current_cmd = null
+run = (command, options, callback) ->
+  if !callback and typeof options is 'function'
+    callback = options
+    options = {}
+  else
+    options or= {}
+  if /^win/i.test(process.platform)  # Awful windows hacks.
+    command = command.replace(/\//g, '\\')
+    cmd = spawn 'cmd', ['/C', command]
+  else
+    cmd = spawn '/bin/sh', ['-c', command]
+  _current_cmd = cmd
+  cmd.stdout.on 'data', (data) ->
+    process.stdout.write data unless options.noOutput
+  cmd.stderr.on 'data', (data) ->
+    process.stderr.write data unless options.noOutput
+  cmd.on 'exit', (code) ->
+    _current_cmd = null
+    if code isnt 0 and !options.noExit
+      console.log "Non-zero exit code #{code} running\n    #{command}"
+      process.exit 1
+    callback(code) if callback?
+  null
 
 download = ([url, file], callback) ->
   if fs.existsSync file

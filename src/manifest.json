@@ -16,12 +16,13 @@
     },
     "default_title": "Starting..."
   },
-  "minimum_chrome_version": "24",
+  "minimum_chrome_version": "29",
   "permissions": [
     "<all_urls>",
 
     "chrome://favicon/",
     "contextMenus",
+    "identity",
     "notifications",
     "storage",
     "unlimitedStorage"

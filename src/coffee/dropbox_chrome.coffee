@@ -30,8 +30,8 @@ class Dropbox.Chrome
     @_clientCallbacks = [callback]
 
     client = new Dropbox.Client @clientOptions
-    client.authDriver new Dropbox.AuthDriver.ChromeExtension(
-        receiverPath: 'html/chrome_oauth_receiver.html')
+    client.authDriver new Dropbox.AuthDriver.ChromeApp()
+
     # Try loading cached credentials, if they are available.
     client.authenticate interactive: false, (error) =>
       # Drop the cached user info when the credentials become invalid.

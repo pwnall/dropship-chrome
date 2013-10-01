@@ -162,9 +162,9 @@ vendor = (callback) ->
     fs.mkdirSync dir unless fs.existsSync dir
 
   downloads = [
-    ['https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/0.10.0/dropbox.min.js',
+    ['https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/0.10.1/dropbox.min.js',
      'vendor/js/dropbox.min.js'],
-    ['https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/0.10.0/dropbox.js',
+    ['https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/0.10.1/dropbox.js',
      'vendor/js/dropbox.js'],
 
     # Zepto.js is a subset of jQuery.
@@ -172,7 +172,7 @@ vendor = (callback) ->
     ['http://zeptojs.com/zepto.min.js', 'vendor/js/zepto.min.js'],
 
     # Humanize for user-readable sizes.
-    ['https://raw.github.com/taijinlee/humanize/0.0.7/humanize.js',
+    ['https://raw.github.com/taijinlee/humanize/0.0.9/humanize.js',
      'vendor/js/humanize.js'],
 
     # Async.js for asynchronous iterators.
@@ -180,7 +180,7 @@ vendor = (callback) ->
      'vendor/js/async.js'],
 
     # URI.js for URL parsing.
-    ['https://raw.github.com/medialize/URI.js/v1.10.2/src/URI.min.js',
+    ['https://raw.github.com/medialize/URI.js/v1.11.2/src/URI.min.js',
      'vendor/js/uri.min.js'],
 
     # FontAwesome for icons.

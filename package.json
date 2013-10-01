@@ -1,6 +1,6 @@
 {
   "name": "dropship-chrome",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Chrome extension for downloading files straight to Dropbox",
   "keywords": ["dropbox", "download"],
   "homepage": "http://github.com/pwnall/dropship-chrome",

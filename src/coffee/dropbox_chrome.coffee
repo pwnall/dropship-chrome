@@ -29,17 +29,15 @@ class Dropbox.Chrome
       return @
     @_clientCallbacks = [callback]
 
-    authDriver = new Dropbox.AuthDriver.Chrome(
+    client = new Dropbox.Client @clientOptions
+    client.authDriver new Dropbox.AuthDriver.ChromeExtension(
         receiverPath: 'html/chrome_oauth_receiver.html')
-    authDriver.loadCredentials (credentials) =>
-      unless credentials and credentials.token
-        # Missing or corrupted credentials.
-        credentials = @clientOptions
-      client = new Dropbox.Client credentials
-      client.authDriver authDriver
-      # Invalidate the cached credentials.
+    # Try loading cached credentials, if they are available.
+    client.authenticate interactive: false, (error) =>
+      # Drop the cached user info when the credentials become invalid.
       client.onAuthStepChange.addListener =>
         @_userInfo = null
+
       @onClient.dispatch client
       @_client = client
       callbacks = @_clientCallbacks
@@ -49,8 +47,8 @@ class Dropbox.Chrome
 
   # Returns a (potentially cached) version of the Dropbox user's information.
   #
-  # @param {function(Dropbox.UserInfo)} callback called when the
-  #   Dropbox.UserInfo becomes available
+  # @param {function(Dropbox.AccountInfo)} callback called when the
+  #   Dropbox.AccountInfo becomes available
   # @return {Dropbox.Chrome} this
   userInfo: (callback) ->
     if @_userInfo
@@ -70,9 +68,9 @@ class Dropbox.Chrome
     chrome.storage.local.get 'dropbox_js_userinfo', (items) =>
       if items and items.dropbox_js_userinfo
         try
-          @_userInfo = Dropbox.UserInfo.parse items.dropbox_js_userinfo
+          @_userInfo = Dropbox.AccountInfo.parse items.dropbox_js_userinfo
           return dispatchUserInfo()
-        catch Error
+        catch parseError
           @_userInfo = null
           # There was a parsing error. Let the control flow fall.
 

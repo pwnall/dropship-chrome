@@ -1,7 +1,7 @@
 {
   "key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC//8zp1SEjDzv5kjK1Gs7Ld5VDldSiL17aAUa5x6vKWdagoulAI3OwVLa3oiAqfjKivhE7b/A2NX4WEeVV6x+c14WP41k4+yr46Wuk7UgDhNi6fCS+Th7Kt1icuDlKE9QinoDaxpnkF68dvWUySRR79XwXQxzHfxePXDrnPGLvnQIDAQAB",
   "name": "Download to Dropbox",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "manifest_version": 2,
   "description": "Conveniently download straight into your Dropbox account",
   "icons": {
@@ -45,6 +45,7 @@
   },
   "options_page": "html/options.html",
   "web_accessible_resources": [
+    "html/chrome_oauth_receiver.html",
     "images/icon16.png",
     "images/icon48.png",
     "images/icon64.png",

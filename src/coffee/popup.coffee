@@ -101,22 +101,22 @@ class DownloadsView
     # Status.
     switch file.state()
       when DropshipFile.NEW, DropshipFile.DOWNLOADING, DropshipFile.DOWNLOADED
-        iconClass = 'icon-spinner icon-spin file-status-inprogress'
+        iconClass = 'fa fa-spinner fa-spin file-status-inprogress'
         iconTitle = 'Downloading'
       when DropshipFile.SAVING, DropshipFile.SAVED
-        iconClass = 'icon-spinner icon-spin file-status-inprogress'
+        iconClass = 'fa fa-spinner fa-spin file-status-inprogress'
         iconTitle = 'Preparing to upload'
       when DropshipFile.UPLOADING
-        iconClass = 'icon-spinner icon-spin file-status-inprogress'
+        iconClass = 'fa fa-spinner fa-spin file-status-inprogress'
         iconTitle = 'Saving to Dropbox'
       when DropshipFile.UPLOADED
-        iconClass = 'icon-ok file-status-done'
+        iconClass = 'fa fa-check file-status-done'
         iconTitle = 'Saved to Dropbox'
       when DropshipFile.CANCELED
-        iconClass = 'icon-ban-circle file-status-canceled'
+        iconClass = 'fa fa-ban file-status-canceled'
         iconTitle = 'Canceled'
       when DropshipFile.ERROR
-        iconClass = 'icon-exclamation-sign file-status-error'
+        iconClass = 'fa fa-exclamation-circle file-status-error'
         iconTitle = 'Something went wrong'
     $statusDom = $ '.file-item-status i', $fileDom
     # Changing the <i>'s attributes resets icon animations, so blind writes are
@@ -157,17 +157,17 @@ class DownloadsView
         $('.file-item-progress', $fileDom).attr 'title',
             "#{humanize.numberFormat(file.uploadedBytes(), 0)} / " +
             "#{humanize.numberFormat(file.size, 0)} bytes uploaded to dropbox"
-        iconClass = 'icon-upload'
+        iconClass = 'fa fa-cloud-upload'
       else if file.state() >= DropshipFile.SAVING
         $('.file-item-progress', $fileDom).attr 'title',
             "#{humanize.numberFormat(file.savedBytes(), 0)} / " +
             "#{humanize.numberFormat(file.size, 0)} bytes saved to disk"
-        iconClass = 'icon-hdd'
+        iconClass = 'fa fa-hdd-o'
       else
         $('.file-item-progress', $fileDom).attr 'title',
             "#{humanize.numberFormat(file.downloadedBytes(), 0)} / " +
             "#{humanize.numberFormat(file.size, 0)} bytes downloaded"
-        iconClass = 'icon-download'
+        iconClass = 'fa fa-download'
       $('.file-progress-wrapper i', $fileDom).attr 'class', iconClass
 
     # Error display.

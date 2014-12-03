@@ -94,7 +94,7 @@ release = (callback) ->
     commands.push 'node_modules/uglify-js/bin/uglifyjs --compress --mangle ' +
                   "--output #{outFile} #{inFile}"
   for inFile in glob.sync 'vendor/js/*.min.js'
-    outFile = 'release/' + inFile.replace /\.min\.js$/, '.js'
+    outFile = 'release/' + inFile.replace(/\.min\.js$/, '.js')
     commands.push "cp #{inFile} #{outFile}"
 
   commands.push 'cd release && zip -r -9 -x "*.DS_Store" "*.sw*" @ ' +
@@ -157,14 +157,15 @@ setupWatch = (callback) ->
         process.nextTick onTick
 
 vendor = (callback) ->
-  dirs = ['vendor', 'vendor/js', 'vendor/less', 'vendor/font', 'vendor/tmp']
+  dirs = ['vendor', 'vendor/js', 'vendor/less', 'vendor/font', 'vendor/tmp',
+          'vendor/less/font_awesome']
   for dir in dirs
     fs.mkdirSync dir unless fs.existsSync dir
 
   downloads = [
-    ['https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/0.10.1/dropbox.min.js',
+    ['https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/0.10.3/dropbox.min.js',
      'vendor/js/dropbox.min.js'],
-    ['https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/0.10.1/dropbox.js',
+    ['https://cdnjs.cloudflare.com/ajax/libs/dropbox.js/0.10.3/dropbox.js',
      'vendor/js/dropbox.js'],
 
     # Zepto.js is a subset of jQuery.
@@ -176,15 +177,15 @@ vendor = (callback) ->
      'vendor/js/humanize.js'],
 
     # Async.js for asynchronous iterators.
-    ['https://raw.github.com/caolan/async/v0.2.5/lib/async.js',
+    ['https://raw.github.com/caolan/async/0.9.0/lib/async.js',
      'vendor/js/async.js'],
 
     # URI.js for URL parsing.
-    ['https://raw.github.com/medialize/URI.js/v1.11.2/src/URI.min.js',
+    ['https://raw.github.com/medialize/URI.js/v1.14.1/src/URI.min.js',
      'vendor/js/uri.min.js'],
 
     # FontAwesome for icons.
-    ['https://github.com/FortAwesome/Font-Awesome/archive/v3.2.1.zip',
+    ['https://github.com/FortAwesome/Font-Awesome/archive/v4.2.0.zip',
      'vendor/tmp/font_awesome.zip'],
   ]
 
@@ -212,23 +213,23 @@ vendor = (callback) ->
       commands.push 'cp vendor/js/uri.min.js vendor/js/uri.js'
 
     # Unpack fontawesome.
-    unless fs.existsSync 'vendor/tmp/Font-Awesome-3.2.1/'
+    unless fs.existsSync 'vendor/tmp/Font-Awesome-4.2.0/'
       commands.push 'unzip -qq -d vendor/tmp vendor/tmp/font_awesome'
       # Patch fontawesome inplace.
-      commands.push 'sed -i -e "/^@FontAwesomePath:/d" ' +
-                    'vendor/tmp/Font-Awesome-3.2.1/less/variables.less'
+      # commands.push 'sed -i -e "/^@FontAwesomePath:/d" ' +
+      #              'vendor/tmp/Font-Awesome-4.2.0/less/variables.less'
 
     async.forEachSeries commands, run, ->
       commands = []
 
       # Copy fontawesome to vendor/.
-      for inFile in glob.sync 'vendor/tmp/Font-Awesome-3.2.1/less/*.less'
-        outFile = inFile.replace /^vendor\/tmp\/Font-Awesome-3\.2\.1\/less\//,
-                                 'vendor/less/'
+      for inFile in glob.sync 'vendor/tmp/Font-Awesome-4.2.0/less/*.less'
+        outFile = inFile.replace /^vendor\/tmp\/Font-Awesome-4\.2\.0\/less\//,
+                                 'vendor/less/font_awesome/'
         unless fs.existsSync outFile
           commands.push "cp #{inFile} #{outFile}"
-      for inFile in glob.sync 'vendor/tmp/Font-Awesome-3.2.1/font/*'
-        outFile = inFile.replace /^vendor\/tmp\/Font-Awesome-3\.2\.1\/font\//,
+      for inFile in glob.sync 'vendor/tmp/Font-Awesome-4.2.0/fonts/*'
+        outFile = inFile.replace /^vendor\/tmp\/Font-Awesome-4\.2\.0\/fonts\//,
                                  'vendor/font/'
         unless fs.existsSync outFile
           commands.push "cp #{inFile} #{outFile}"

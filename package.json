@@ -11,17 +11,17 @@
     "url": "https://github.com/pwnall/dropship-chrome.git"
   },
   "engines": {
-    "chrome": ">= 24"
+    "chrome": ">= 33"
   },
   "devDependencies": {
-    "async": ">= 0.2.9",
-    "codo": ">= 1.7.0",
-    "coffee-script": ">= 1.6.3",
+    "async": ">= 0.9.0",
+    "codo": ">= 2.0.9",
+    "coffee-script": ">= 1.8.0",
     "fs-extra": ">= 0.6.1",
-    "glob": ">= 3.2.1",
-    "less": ">= 1.4.0",
+    "glob": ">= 4.3.1",
+    "less": ">= 2.1.1",
     "remove": ">= 0.1.5",
-    "uglify-js": ">= 2.3.6",
+    "uglify-js": ">= 2.4.15",
     "watch": ">= 0.8.0"
   },
   "directories": {
